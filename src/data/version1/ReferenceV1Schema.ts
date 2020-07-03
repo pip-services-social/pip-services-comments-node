@@ -9,5 +9,6 @@ export class ReferenceV1Schema extends ObjectSchema {
         this.withRequiredProperty('type', TypeCode.String);
         this.withOptionalProperty('subtype', TypeCode.String);
         this.withOptionalProperty('name', TypeCode.String);
+        this.withOptionalProperty('parent', TypeCode.Boolean);
     }
 }
