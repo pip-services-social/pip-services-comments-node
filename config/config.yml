@@ -1,0 +1,77 @@
+---
+# Container descriptor
+- descriptor: "pip-services:context-info:default:default:1.0"
+  name: "pip-services-comments"
+  description: "Comments microservice for pip-services"
+
+# Console logger
+- descriptor: "pip-services:logger:console:default:1.0"
+  level: "trace"
+
+# Performance counters that posts values to log
+- descriptor: "pip-services:counters:log:default:1.0"
+  level: "trace"
+
+{{#if MEMORY_ENABLED}}
+# In-memory persistence. Use only for testing!
+- descriptor: "pip-services-comments:persistence:memory:default:1.0"
+{{/if}}
+
+{{#if FILE_ENABLED}}
+# File persistence. Use it for testing of for simple standalone deployments
+- descriptor: "pip-services-comments:persistence:file:default:1.0"
+  path: {{FILE_PATH}}{{#unless FILE_PATH}}"../data/comments.json"{{/unless}}
+{{/if}}
+
+{{#if MONGO_ENABLED}}
+# MongoDB Persistence
+- descriptor: "pip-services-comments:persistence:mongodb:default:1.0"
+  collection: {{MONGO_COLLECTION}}{{#unless MONGO_COLLECTION}}comments{{/unless}}
+  connection:
+    uri: {{{MONGO_SERVICE_URI}}}
+    host: {{{MONGO_SERVICE_HOST}}}{{#unless MONGO_SERVICE_HOST}}localhost{{/unless}}
+    port: {{MONGO_SERVICE_PORT}}{{#unless MONGO_SERVICE_PORT}}27017{{/unless}}
+    database: {{MONGO_DB}}{{#unless MONGO_DB}}app{{/unless}}
+  credential:
+    username: {{MONGO_USER}}
+    password: {{MONGO_PASS}}
+{{/if}}
+
+{{#if COUCHBASE_ENABLED}}
+# Couchbase Persistence
+- descriptor: "pip-services-comments:persistence:couchbase:default:1.0"
+  bucket: {{COUCHBASE_BUCKET}}{{#unless COUCHBASE_BUCKET}}users{{/unless}}
+  connection:
+    uri: {{{COUCHBASE_SERVICE_URI}}}
+    host: {{{COUCHBASE_SERVICE_HOST}}}{{#unless COUCHBASE_SERVICE_HOST}}localhost{{/unless}}
+    port: {{COUCHBASE_SERVICE_PORT}}{{#unless COUCHBASE_SERVICE_PORT}}8091{{/unless}}
+  credential:
+    username: {{COUCHBASE_USER}}
+    password: {{COUCHBASE_PASS}}
+{{/if}}
+
+{{#unless MEMORY_ENABLED}}{{#unless FILE_ENABLED}}{{#unless MONGO_ENABLED}}{{#unless COUCHBASE_ENABLED}}
+# Default in-memory persistence
+- descriptor: "pip-services-comments:persistence:memory:default:1.0"
+{{/unless}}{{/unless}}{{/unless}}{{/unless}}
+
+# Default controller
+- descriptor: "pip-services-comments:controller:default:default:1.0"
+
+{{#if HTTP_ENABLED}}
+# Common HTTP endpoint
+- descriptor: "pip-services:endpoint:http:default:1.0"
+  connection:
+    protocol: "http"
+    host: "0.0.0.0"
+    port: 8080
+
+# HTTP endpoint version 1.0
+- descriptor: "pip-services-comments:service:http:default:1.0"
+
+# Heartbeat service
+- descriptor: "pip-services:heartbeat-service:http:default:1.0"
+
+# Status service
+- descriptor: "pip-services:status-service:http:default:1.0"
+{{/if}}
