@@ -11,6 +11,7 @@ import { CommentV1 } from '../../../src/data/version1/CommentV1';
 import { CommentsMemoryPersistence } from '../../../src/persistence/CommentsMemoryPersistence';
 import { CommentsController } from '../../../src/logic/CommentsController';
 import { CommentsHttpServiceV1 } from '../../../src/services/version1/CommentsHttpServiceV1';
+import { ReferenceV1 } from '../../../src/data/version1/ReferenceV1';
 
 let httpConfig = ConfigParams.fromTuples(
     "connection.protocol", "http",
@@ -18,21 +19,24 @@ let httpConfig = ConfigParams.fromTuples(
     "connection.port", 3000
 );
 
+let refs = [];
+let ref1: ReferenceV1 ={
+    id: '4',
+    type: 'page', 
+    name: 'reference page',
+}
+refs.push(ref1);
 let COMMENT1: CommentV1 = {
     id: '1',
-    name: new MultiString({en: 'App1'}),
-    product: 'Product 1',
-    copyrights: 'PipDevs 2018',
-    min_ver: 0,
-    max_ver: 9999
+    creator_id: '1',
+    creator_name: 'Evgeniy',
+    refs: refs,
 };
 let COMMENT2: CommentV1 = {
     id: '2',
-    name: new MultiString({en: 'App1'}),
-    product: 'Product 1',
-    copyrights: 'PipDevs 2018',
-    min_ver: 0,
-    max_ver: 9999
+    creator_id: '2',
+    creator_name: 'Tom',
+    refs: refs,
 };
 
 suite('CommentsHttpServiceV1', ()=> {    
@@ -81,9 +85,9 @@ suite('CommentsHttpServiceV1', ()=> {
                         assert.isNull(err);
 
                         assert.isObject(comment);
-                        assert.equal(comment.name.en, COMMENT1.name.get('en'));
-                        assert.equal(comment.product, COMMENT1.product);
-                        assert.equal(comment.copyrights, COMMENT1.copyrights);
+                        assert.equal(comment.creator_id, COMMENT1.creator_id);
+                        assert.equal(comment.creator_name, COMMENT1.creator_name);
+                        assert.equal(comment.refs[0].id, ref1.id);
 
                         comment1 = comment;
 
@@ -101,9 +105,10 @@ suite('CommentsHttpServiceV1', ()=> {
                         assert.isNull(err);
 
                         assert.isObject(comment);
-                        assert.equal(comment.name.en, COMMENT2.name.get('en'));
-                        assert.equal(comment.product, COMMENT2.product);
-                        assert.equal(comment.copyrights, COMMENT2.copyrights);
+                        assert.isObject(comment);
+                        assert.equal(comment.creator_id, COMMENT2.creator_id);
+                        assert.equal(comment.creator_name, COMMENT2.creator_name);
+                        assert.equal(comment.refs[0].id, ref1.id);
 
                         comment2 = comment;
 
@@ -127,7 +132,7 @@ suite('CommentsHttpServiceV1', ()=> {
             },
         // Update the comment
             (callback) => {
-                comment1.name.en = 'Updated Name 1';
+                comment1.creator_name = 'Valentin';
 
                 rest.post('/v1/comments/update_comment',
                     { 
@@ -137,7 +142,7 @@ suite('CommentsHttpServiceV1', ()=> {
                         assert.isNull(err);
 
                         assert.isObject(comment);
-                        assert.equal(comment.name.en, 'Updated Name 1');
+                        assert.equal(comment.creator_name, 'Valentin');
                         assert.equal(comment.id, COMMENT1.id);
 
                         comment1 = comment;

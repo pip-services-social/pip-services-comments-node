@@ -1,0 +1,1 @@
+export { CommentsServiceFactory } from './CommentsServiceFactory';

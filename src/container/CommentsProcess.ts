@@ -3,7 +3,6 @@ import { ProcessContainer } from 'pip-services3-container-node';
 
 import { CommentsServiceFactory } from '../build/CommentsServiceFactory';
 import { DefaultRpcFactory } from 'pip-services3-rpc-node';
-import { DefaultGrpcFactory } from 'pip-services3-grpc-node';
 
 export class CommentsProcess extends ProcessContainer {
 
@@ -11,7 +10,5 @@ export class CommentsProcess extends ProcessContainer {
         super("comments", "Comments microservice");
         this._factories.add(new CommentsServiceFactory);
         this._factories.add(new DefaultRpcFactory);
-        this._factories.add(new DefaultGrpcFactory);
     }
-
 }

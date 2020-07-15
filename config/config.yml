@@ -58,7 +58,6 @@
 # Default controller
 - descriptor: "pip-services-comments:controller:default:default:1.0"
 
-{{#if HTTP_ENABLED}}
 # Common HTTP endpoint
 - descriptor: "pip-services:endpoint:http:default:1.0"
   connection:
@@ -74,4 +73,3 @@
 
 # Status service
 - descriptor: "pip-services:status-service:http:default:1.0"
-{{/if}}
