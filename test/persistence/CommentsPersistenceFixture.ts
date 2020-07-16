@@ -217,13 +217,6 @@ export class CommentsPersistenceFixture {
             (callback) => {
                 this.testCreateComments(callback);
             },
-
-            // let ref_type = filter.getAsNullableString('ref_type');
-            // let ref_id = filter.getAsNullableString('ref_id');
-            // let parent_id = filter.getAsNullableString('parent_id');
-            // let creator_id = filter.getAsNullableString('creator_id');
-            // let create_time_from = filter.getAsNullableDateTime('create_time_from');
-            // let create_time_to = filter.getAsNullableDateTime('create_time_to');
             
         // Get comments filtered by ref_type
             (callback) => {
