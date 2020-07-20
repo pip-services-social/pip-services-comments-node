@@ -37,23 +37,10 @@
     password: {{MONGO_PASS}}
 {{/if}}
 
-{{#if COUCHBASE_ENABLED}}
-# Couchbase Persistence
-- descriptor: "pip-services-comments:persistence:couchbase:default:1.0"
-  bucket: {{COUCHBASE_BUCKET}}{{#unless COUCHBASE_BUCKET}}users{{/unless}}
-  connection:
-    uri: {{{COUCHBASE_SERVICE_URI}}}
-    host: {{{COUCHBASE_SERVICE_HOST}}}{{#unless COUCHBASE_SERVICE_HOST}}localhost{{/unless}}
-    port: {{COUCHBASE_SERVICE_PORT}}{{#unless COUCHBASE_SERVICE_PORT}}8091{{/unless}}
-  credential:
-    username: {{COUCHBASE_USER}}
-    password: {{COUCHBASE_PASS}}
-{{/if}}
-
-{{#unless MEMORY_ENABLED}}{{#unless FILE_ENABLED}}{{#unless MONGO_ENABLED}}{{#unless COUCHBASE_ENABLED}}
+{{#unless MEMORY_ENABLED}}{{#unless FILE_ENABLED}}{{#unless MONGO_ENABLED}}
 # Default in-memory persistence
 - descriptor: "pip-services-comments:persistence:memory:default:1.0"
-{{/unless}}{{/unless}}{{/unless}}{{/unless}}
+{{/unless}}{{/unless}}{{/unless}}
 
 # Default controller
 - descriptor: "pip-services-comments:controller:default:default:1.0"

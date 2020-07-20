@@ -1,4 +1,3 @@
-import { IReferences } from 'pip-services3-commons-node';
 import { ProcessContainer } from 'pip-services3-container-node';
 
 import { CommentsServiceFactory } from '../build/CommentsServiceFactory';

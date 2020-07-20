@@ -6,8 +6,6 @@ import { CommentV1 } from '../data/version1/CommentV1';
 import { ICommentsPersistence } from './ICommentsPersistence';
 export declare class CommentsMemoryPersistence extends IdentifiableMemoryPersistence<CommentV1, string> implements ICommentsPersistence {
     constructor();
-    private matchString;
-    private matchSearch;
     private composeFilter;
     getPageByFilter(correlationId: string, filter: FilterParams, paging: PagingParams, callback: (err: any, page: DataPage<CommentV1>) => void): void;
     getOneById(correlationId: string, id: string, callback: (err: any, item: CommentV1) => void): void;

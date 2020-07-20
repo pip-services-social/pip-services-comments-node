@@ -4,7 +4,6 @@ import { FilterParams } from 'pip-services3-commons-node';
 import { PagingParams } from 'pip-services3-commons-node';
 import { DataPage } from 'pip-services3-commons-node';
 import { IdentifiableMemoryPersistence } from 'pip-services3-data-node';
-import { TagsProcessor } from 'pip-services3-commons-node';
 
 import { CommentV1 } from '../data/version1/CommentV1';
 import { ICommentsPersistence } from './ICommentsPersistence';
@@ -23,10 +22,16 @@ export class CommentsMemoryPersistence
         let ref_id = filter.getAsNullableString('ref_id');
         let ref_type = filter.getAsNullableString('ref_type');
         let parent_id = filter.getAsNullableString('parent_id');
+        let parent_ids = filter.getAsObject('parent_ids');
         let creator_id = filter.getAsNullableString('creator_id');
-        let create_time_from = filter.getAsNullableDateTime('create_time_from');
-        let create_time_to = filter.getAsNullableDateTime('create_time_to');
-                
+        let time_from = filter.getAsNullableDateTime('time_from');
+        let time_to = filter.getAsNullableDateTime('time_to');
+
+        if (_.isString(parent_ids))
+            parent_ids = parent_ids.split(',');
+        if (!_.isArray(parent_ids))
+            parent_ids = null;  
+        // console.log(parent_ids);
         return (item) => {
             if (ref_id && (item.refs == null || item.refs.map(x => x.id).indexOf(ref_id) < 0))
                 return false;
@@ -34,11 +39,13 @@ export class CommentsMemoryPersistence
                 return false;
             if (parent_id && (item.parent_ids == null || item.parent_ids.indexOf(parent_id) < 0))
                 return false;
+            if (parent_ids && (item.parent_ids == null || !parent_ids.some(r=> item.parent_ids.includes(r) == true)  ))
+                return false;                
             if (creator_id && item.creator_id != creator_id)
                 return false;
-            if (create_time_from && (item.create_time == null || item.create_time < create_time_from))
+            if (time_from  && (item.create_time == null || item.create_time < time_from ))
                 return false;
-            if (create_time_to && (item.create_time == null || item.create_time > create_time_to))
+            if (time_to && (item.create_time == null || item.create_time > time_to))
                 return false;
             return true;
         };

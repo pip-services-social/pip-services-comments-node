@@ -48,17 +48,19 @@ let COMMENT1: CommentV1 = {
     id: '1',
     creator_id: '1',
     creator_name: 'Evgeniy',
+    parent_ids: ['5'],
     refs: refs,
-    create_time:  new Date("2020-07-14"),
+    create_time:  new Date("2018-07-14"),
     content: contents,
     memes: memes  
+    
 };
 let COMMENT2: CommentV1 = {
     id: '2',
     creator_id: '2',
     creator_name: 'Tom',
     refs: refs,
-    create_time:  new Date("2018-07-14"),
+    create_time:  new Date("2020-07-14"),
     parent_ids: ['3','4'],
 };
 let COMMENT3: CommentV1 = {
@@ -237,7 +239,7 @@ export class CommentsPersistenceFixture {
                 );
             },
 
-        // Get comments filtered by ref_if
+        // Get comments filtered by ref_id
             (callback) => {
                 this._persistence.getPageByFilter(
                     null,
@@ -312,12 +314,31 @@ export class CommentsPersistenceFixture {
                 );
             },
 
+        // Get comments filtered by parent_ids
+        (callback) => {
+            this._persistence.getPageByFilter(
+                null,
+                FilterParams.fromValue({
+                    parent_ids: '2,5'
+                }),
+                new PagingParams(),
+                (err, comments) => {
+                    assert.isNull(err);
+
+                    assert.isObject(comments);
+                    assert.lengthOf(comments.data, 2);
+
+                    callback();
+                }
+            );
+        },
+
         // Get comments filtered by create_time №1
             (callback) => {
                 this._persistence.getPageByFilter(
                     null,
                     FilterParams.fromValue({
-                        create_time_to: new Date(),
+                        time_to: new Date(),
 
                     }),
                     new PagingParams(),
@@ -326,6 +347,9 @@ export class CommentsPersistenceFixture {
 
                         assert.isObject(comments);
                         assert.lengthOf(comments.data, 2);
+                        //test for mongodb sorting
+                        // assert.equal(comments.data[0].create_time, COMMENT1.create_time);
+                        
 
                         callback();
                     }
@@ -337,8 +361,8 @@ export class CommentsPersistenceFixture {
                 this._persistence.getPageByFilter(
                     null,
                     FilterParams.fromValue({
-                        create_time_from:  new Date("2019-07-14"),
-                        create_time_to:  new Date("2020-07-15"),
+                        time_from:  new Date("2019-07-14"),
+                        time_to:  new Date("2020-07-15"),
 
                     }),
                     new PagingParams(),

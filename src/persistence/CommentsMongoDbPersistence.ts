@@ -14,6 +14,9 @@ export class CommentsMongoDbPersistence
 
     constructor() {
         super('comments');
+        this.ensureIndex({ 'ref.id': 1, 'ref.type': 1 });
+        this.ensureIndex({ parent_ids: 1 });
+        this.ensureIndex({ create_time: -1 });
     }
     
     private composeFilter(filter: any) {
@@ -36,24 +39,33 @@ export class CommentsMongoDbPersistence
             criteria.push({ parent_ids: { $in: [parent_id] } });
         }
 
+        let parent_ids = filter.getAsObject('parent_ids');
+        if (_.isString(parent_ids))
+            parent_ids = parent_ids.split(',');
+        if (_.isArray(parent_ids))
+            criteria.push({ parent_ids: { $in: parent_ids } });
+
         let creator_id = filter.getAsNullableString('creator_id');
         if (creator_id != null) {
             criteria.push({ 'creator_id': creator_id });
         }
 
-        let create_time_from = filter.getAsNullableDateTime('create_time_from');
-        if (create_time_from != null){
-            criteria.push({ create_time: { $gte: create_time_from } });
+        let time_from = filter.getAsNullableDateTime('time_from');
+        if (time_from != null){
+            criteria.push({ create_time: { $gte: time_from } });
         }
 
-        let create_time_to = filter.getAsNullableDateTime('create_time_to');
-        if (create_time_to != null){
-            criteria.push({ create_time: { $lt: create_time_to } });
+        let time_to = filter.getAsNullableDateTime('time_to');
+        if (time_to != null){
+            criteria.push({ create_time: { $lt: time_to } });
         }
 
         let id = filter.getAsNullableString('id');
         if (id != null)
-            criteria.push({ _id: id });
+            criteria.push({ $sort: {create_time: -1 } });
+        if (criteria.length > 0){
+
+        }
         return criteria.length > 0 ? { $and: criteria } : null;
     }
     
