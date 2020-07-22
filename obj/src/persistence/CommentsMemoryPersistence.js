@@ -21,7 +21,6 @@ class CommentsMemoryPersistence extends pip_services3_data_node_1.IdentifiableMe
             parent_ids = parent_ids.split(',');
         if (!_.isArray(parent_ids))
             parent_ids = null;
-        // console.log(parent_ids);
         return (item) => {
             if (ref_id && (item.refs == null || item.refs.map(x => x.id).indexOf(ref_id) < 0))
                 return false;
@@ -33,9 +32,9 @@ class CommentsMemoryPersistence extends pip_services3_data_node_1.IdentifiableMe
                 return false;
             if (creator_id && item.creator_id != creator_id)
                 return false;
-            if (time_from && (item.create_time == null || item.create_time < time_from))
+            if (time_from && (item.create_time == null || pip_services3_commons_node_1.DateTimeConverter.toNullableDateTime(item.create_time) < time_from))
                 return false;
-            if (time_to && (item.create_time == null || item.create_time > time_to))
+            if (time_to && (item.create_time == null || pip_services3_commons_node_1.DateTimeConverter.toNullableDateTime(item.create_time) > time_to))
                 return false;
             return true;
         };

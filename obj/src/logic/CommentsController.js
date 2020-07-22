@@ -20,6 +20,13 @@ class CommentsController {
         return this._commandSet;
     }
     getComments(correlationId, filter, paging, callback) {
+        // console.log(filter);
+        if (filter['time_from']) {
+            filter['time_from'] = pip_services3_commons_node_1.DateTimeConverter.toNullableDateTime(filter['time_from']);
+        }
+        if (filter['time_to']) {
+            filter['time_to'] = pip_services3_commons_node_1.DateTimeConverter.toNullableDateTime(filter['time_to']);
+        }
         this._persistence.getPageByFilter(correlationId, filter, paging, callback);
     }
     getCommentById(correlationId, id, callback) {

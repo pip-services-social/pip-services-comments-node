@@ -1,6 +1,6 @@
 let _ = require('lodash');
 
-import { FilterParams } from 'pip-services3-commons-node';
+import { FilterParams, DateTimeConverter } from 'pip-services3-commons-node';
 import { PagingParams } from 'pip-services3-commons-node';
 import { DataPage } from 'pip-services3-commons-node';
 import { IdentifiableMemoryPersistence } from 'pip-services3-data-node';
@@ -31,7 +31,7 @@ export class CommentsMemoryPersistence
             parent_ids = parent_ids.split(',');
         if (!_.isArray(parent_ids))
             parent_ids = null;  
-        // console.log(parent_ids);
+
         return (item) => {
             if (ref_id && (item.refs == null || item.refs.map(x => x.id).indexOf(ref_id) < 0))
                 return false;
@@ -43,9 +43,9 @@ export class CommentsMemoryPersistence
                 return false;                
             if (creator_id && item.creator_id != creator_id)
                 return false;
-            if (time_from  && (item.create_time == null || item.create_time < time_from ))
+            if (time_from  && (item.create_time == null || DateTimeConverter.toNullableDateTime(item.create_time) < time_from ))
                 return false;
-            if (time_to && (item.create_time == null || item.create_time > time_to))
+            if (time_to && (item.create_time == null || DateTimeConverter.toNullableDateTime(item.create_time) > time_to ))
                 return false;
             return true;
         };

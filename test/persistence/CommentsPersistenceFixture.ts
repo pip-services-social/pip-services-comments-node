@@ -167,7 +167,6 @@ export class CommentsPersistenceFixture {
             },
         // Update the comment
             (callback) => {
-                //comment1.name.put('en', 'Updated Name 1');
                 comment1.creator_name = 'Richard';
 
                 this._persistence.update(
@@ -347,9 +346,6 @@ export class CommentsPersistenceFixture {
 
                         assert.isObject(comments);
                         assert.lengthOf(comments.data, 2);
-                        //test for mongodb sorting
-                        // assert.equal(comments.data[0].create_time, COMMENT1.create_time);
-                        
 
                         callback();
                     }

@@ -1,4 +1,4 @@
-import { ConfigParams } from 'pip-services3-commons-node';
+import { ConfigParams, DateTimeConverter } from 'pip-services3-commons-node';
 import { IConfigurable } from 'pip-services3-commons-node';
 import { IReferences } from 'pip-services3-commons-node';
 import { Descriptor } from 'pip-services3-commons-node';
@@ -42,6 +42,17 @@ export class CommentsController implements  IConfigurable, IReferenceable, IComm
     
     public getComments(correlationId: string, filter: FilterParams, paging: PagingParams, 
         callback: (err: any, page: DataPage<CommentV1>) => void): void {
+            // console.log(filter);
+            if(filter['time_from'] ){
+                filter['time_from'] = DateTimeConverter.toNullableDateTime(filter['time_from']);
+                
+            }
+            if(filter['time_to']){
+                
+                filter['time_to'] = DateTimeConverter.toNullableDateTime(filter['time_to']);
+                
+            }
+            
         this._persistence.getPageByFilter(correlationId, filter, paging, callback);
     }
 

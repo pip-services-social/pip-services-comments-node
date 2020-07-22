@@ -12,6 +12,7 @@ import { CommentsMemoryPersistence } from '../../../src/persistence/CommentsMemo
 import { CommentsController } from '../../../src/logic/CommentsController';
 import { CommentsHttpServiceV1 } from '../../../src/services/version1/CommentsHttpServiceV1';
 import { ReferenceV1 } from '../../../src/data/version1/ReferenceV1';
+import { ContentV1, MemeV1 } from '../../../src/data/version1';
 
 let httpConfig = ConfigParams.fromTuples(
     "connection.protocol", "http",
@@ -26,25 +27,62 @@ let ref1: ReferenceV1 ={
     name: 'reference page',
 }
 refs.push(ref1);
+
+let ref2: ReferenceV1 ={
+    id: '5',
+    type: 'page', 
+    name: 'reference page2',
+}
+refs.push(ref2);
+
+
+let contents = [];
+let content1: ContentV1 = {
+    type: 'text',
+    text: 'text'
+
+}
+contents.push(content1);
+
+let memes = [];
+let meme1: MemeV1 = {
+    type: 'like',
+    count: 1,
+}
+memes.push(meme1);
+
 let COMMENT1: CommentV1 = {
     id: '1',
     creator_id: '1',
     creator_name: 'Evgeniy',
+    parent_ids: ['5'],
     refs: refs,
+    create_time:  new Date("2018-07-14"),
+    content: contents,
+    memes: memes  
+    
 };
 let COMMENT2: CommentV1 = {
     id: '2',
     creator_id: '2',
     creator_name: 'Tom',
     refs: refs,
+    create_time:  new Date("2020-07-14"),
+    parent_ids: ['3','4'],
 };
-
+let COMMENT3: CommentV1 = {
+    id: '3',
+    creator_id: '2',
+    creator_name: 'Tom',
+    create_time:  new Date("2022-07-14"),
+    parent_ids: ['2','3'],
+};
 suite('CommentsHttpServiceV1', ()=> {    
     let service: CommentsHttpServiceV1;
     let rest: any;
-
+    let persistence = new CommentsMemoryPersistence();
     suiteSetup((done) => {
-        let persistence = new CommentsMemoryPersistence();
+        
         let controller = new CommentsController();
 
         service = new CommentsHttpServiceV1();
@@ -59,10 +97,13 @@ suite('CommentsHttpServiceV1', ()=> {
         service.setReferences(references);
 
         service.open(null, done);
+   
     });
     
     suiteTeardown((done) => {
+      
         service.close(null, done);
+        
     });
 
     setup(() => {
@@ -71,8 +112,8 @@ suite('CommentsHttpServiceV1', ()=> {
     });
     
     
-    test('CRUD Operations', (done) => {
-        let comment1, comment2;
+    test('CommentsHttpSeviceV1', (done) => {
+        let comment1;
 
         async.series([
         // Create one comment
@@ -85,9 +126,14 @@ suite('CommentsHttpServiceV1', ()=> {
                         assert.isNull(err);
 
                         assert.isObject(comment);
+                        assert.equal(comment.id, COMMENT1.id);
                         assert.equal(comment.creator_id, COMMENT1.creator_id);
                         assert.equal(comment.creator_name, COMMENT1.creator_name);
-                        assert.equal(comment.refs[0].id, ref1.id);
+                        assert.equal(comment.refs[0].type, COMMENT1.refs[0].type);
+                        //wrong format when check equal for COMMENT1.create_time 
+                        assert.equal(comment.create_time, COMMENT1.create_time.toISOString());
+                        assert.equal(comment.content[0].type, COMMENT1.content[0].type);
+                        assert.equal(comment.memes[0].type, COMMENT1.memes[0].type);
 
                         comment1 = comment;
 
@@ -95,6 +141,7 @@ suite('CommentsHttpServiceV1', ()=> {
                     }
                 );
             },
+
         // Create another comment
             (callback) => {
                 rest.post('/v1/comments/create_comment', 
@@ -110,12 +157,159 @@ suite('CommentsHttpServiceV1', ()=> {
                         assert.equal(comment.creator_name, COMMENT2.creator_name);
                         assert.equal(comment.refs[0].id, ref1.id);
 
-                        comment2 = comment;
+                        callback();
+                    }
+                );
+            },
+
+        // Create another comment
+            (callback) => {
+                rest.post('/v1/comments/create_comment', 
+                    {
+                        comment: COMMENT3
+                    },
+                    (err, req, res, comment) => {
+                        assert.isNull(err);
+
+                        assert.isObject(comment);
+                        assert.isObject(comment);
+                        assert.equal(comment.creator_id, COMMENT3.creator_id);
+                        assert.equal(comment.creator_name, COMMENT3.creator_name);
 
                         callback();
                     }
                 );
             },
+
+       // Get comments filtered by ref_type
+            (callback) => {
+                rest.post('/v1/comments/get_comments', {
+                    filter:{
+                        ref_type: 'page'
+                    }
+                }, (err, req, res, result) => {
+                    assert.isNull(err);
+                    assert.isObject(result);
+                    assert.lengthOf(result.data, 2);
+
+                    callback();
+                });
+            },
+
+        // Get comments filtered by ref_id
+            (callback) => {
+                rest.post('/v1/comments/get_comments', {
+                    filter:{
+                        ref_id: '5'
+                    }
+                }, (err, req, res, result) => {
+                    assert.isNull(err);
+                    assert.isObject(result);
+                    assert.lengthOf(result.data, 2);
+
+                    callback();
+                });
+            },
+
+        // Get comments filtered by creator_id
+            (callback) => {
+                rest.post('/v1/comments/get_comments', {
+                    filter:{
+                        creator_id: '2'
+                    }
+                }, (err, req, res, result) => {
+                    assert.isNull(err);
+                    assert.isObject(result);
+                    assert.lengthOf(result.data, 2);
+
+                    callback();
+                });
+            },
+
+        // Get comments filtered by parent_id №1
+            (callback) => {
+                rest.post('/v1/comments/get_comments', {
+                    filter:{
+                        parent_id: '4'
+                    }
+                }, (err, req, res, result) => {
+                    assert.isNull(err);
+                    assert.isObject(result);
+                    assert.lengthOf(result.data, 1);
+
+                    callback();
+                });
+            },
+
+        // Get comments filtered by parent_id №2
+            (callback) => {
+                rest.post('/v1/comments/get_comments', {
+                    filter:{
+                        parent_id: '3'
+                    }
+                }, (err, req, res, result) => {
+                    assert.isNull(err);
+
+                    assert.isObject(result);
+                    assert.lengthOf(result.data, 2);
+                    
+                    callback();
+                });
+            },
+
+
+        // Get comments filtered by parent_ids
+            (callback) => {
+                rest.post('/v1/comments/get_comments', {
+                    filter:{
+                        parent_ids: '2,5'
+                    }
+                }, (err, req, res, result) => {
+                        assert.isNull(err);
+
+                        assert.isObject(result);
+                        assert.lengthOf(result.data, 2);
+
+                        callback();
+                });
+            },
+
+        // Get comments filtered by create_time №1
+            (callback) => {
+                rest.post('/v1/comments/get_comments', {
+                    filter:{
+                        time_to: new Date(),
+                    }
+                    }, (err, req, res, result) => {
+                        assert.isNull(err);
+
+                        assert.isObject(result);
+                        assert.lengthOf(result.data, 2);
+                        
+
+                        callback();
+                    }
+                );
+            },
+
+        // Get comments filtered by create_time №1
+            (callback) => {
+                rest.post('/v1/comments/get_comments', {
+                    filter:{
+                        time_from:  new Date("2019-07-14"),
+                        time_to:  new Date("2020-07-15"),
+                    }
+                    }, (err, req, res, result) => {
+                        assert.isNull(err);
+
+                        assert.isObject(result);
+                        assert.lengthOf(result.data, 1);
+
+                        callback();
+                    }
+                );
+            },
+
         // Get all comments
             (callback) => {
                 rest.post('/v1/comments/get_comments',
@@ -124,7 +318,7 @@ suite('CommentsHttpServiceV1', ()=> {
                         assert.isNull(err);
 
                         assert.isObject(page);
-                        assert.lengthOf(page.data, 2);
+                        assert.lengthOf(page.data, 3);
 
                         callback();
                     }
@@ -180,7 +374,8 @@ suite('CommentsHttpServiceV1', ()=> {
                         callback();
                     }
                 );
-            }
+            },
+  
         ], done);
     });
 });
