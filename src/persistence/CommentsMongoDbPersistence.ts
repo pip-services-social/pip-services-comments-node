@@ -46,21 +46,34 @@ export class CommentsMongoDbPersistence
             );
         }
 
+        let comment_state = filter.getAsNullableString('comment_state');
+        let creator_id = filter.getAsNullableString('creator_id');
+
+        if (comment_state!= null && creator_id!= null) {
+            criteria.push({
+                $or: [
+                    { comment_state: comment_state },
+                    { creator_id: creator_id }
+                ]
+            });
+        } else {
+            if (comment_state != null) {
+                criteria.push({ comment_state: comment_state });
+            }
+            if (creator_id != null) {
+                criteria.push({ creator_id: creator_id });
+            }
+        }
+
         let parent_id = filter.getAsNullableString('parent_id');
         if (parent_id != null) {
             criteria.push({ parent_ids: { $elemMatch: { $eq: parent_id } } });
         }
-
         let parent_ids = filter.getAsObject('parent_ids');
         if (_.isString(parent_ids))
             parent_ids = parent_ids.split(',');
         if (_.isArray(parent_ids))
             criteria.push({ parent_ids: { $elemMatch: { $in: parent_ids } } });
-
-        let creator_id = filter.getAsNullableString('creator_id');
-        if (creator_id != null) {
-            criteria.push({ 'creator_id': creator_id });
-        }
 
         let time_from = filter.getAsNullableDateTime('time_from');
         if (time_from != null) {
@@ -70,6 +83,11 @@ export class CommentsMongoDbPersistence
         let time_to = filter.getAsNullableDateTime('time_to');
         if (time_to != null) {
             criteria.push({ create_time: { $lt: time_to } });
+        }
+
+        let deleted = filter.getAsBooleanWithDefault('deleted', false);
+        if (deleted) {
+            criteria.push({ deleted: deleted });
         }
 
         let id = filter.getAsNullableString('id');
@@ -119,7 +137,7 @@ export class CommentsMongoDbPersistence
             _id: id
         };
 
-        let update = { $inc: { children_counter: -1} };
+        let update = { $inc: { children_counter: -1 } };
 
         let options = {
             returnOriginal: false

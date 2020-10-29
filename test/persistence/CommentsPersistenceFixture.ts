@@ -46,8 +46,8 @@ memes.push(meme1);
 
 let COMMENT1: CommentV1 = {
     id: '1',
-    deleted: false,
-    comment_state: CommentStateV1.Submited,
+    deleted: true,
+    comment_state: CommentStateV1.Approved,
     creator_id: '1',
     creator_name: 'Evgeniy',
     parent_ids: ['5'],
@@ -60,7 +60,7 @@ let COMMENT1: CommentV1 = {
 let COMMENT2: CommentV1 = {
     id: '2',
     deleted: false,
-    comment_state: CommentStateV1.Submited,
+    comment_state: CommentStateV1.Approved,
     creator_id: '2',
     creator_name: 'Tom',
     refs: refs,
@@ -73,6 +73,7 @@ let COMMENT3: CommentV1 = {
     comment_state: CommentStateV1.Submited,
     creator_id: '2',
     creator_name: 'Tom',
+    refs: refs,
     parent_ids: ['2','3'],
 };
 
@@ -264,7 +265,7 @@ export class CommentsPersistenceFixture {
                         assert.isNull(err);
 
                         assert.isObject(comments);
-                        assert.lengthOf(comments.data, 2);
+                        assert.lengthOf(comments.data, 3);
 
                         callback();
                     }
@@ -283,7 +284,7 @@ export class CommentsPersistenceFixture {
                         assert.isNull(err);
 
                         assert.isObject(comments);
-                        assert.lengthOf(comments.data, 2);
+                        assert.lengthOf(comments.data, 3);
 
                         callback();
                     }
@@ -364,6 +365,24 @@ export class CommentsPersistenceFixture {
                 }
             );
         },
+        // Get comments filtered by parent_ids
+        (callback) => {
+            this._persistence.getPageByFilter(
+                null,
+                FilterParams.fromValue({
+                    deleted: true
+                }),
+                new PagingParams(),
+                (err, comments) => {
+                    assert.isNull(err);
+
+                    assert.isObject(comments);
+                    assert.lengthOf(comments.data, 1);
+
+                    callback();
+                }
+            );
+        },
         // Get comments filtered by empty_parent
         (callback) => {
             this._persistence.getPageByFilter(
@@ -418,6 +437,45 @@ export class CommentsPersistenceFixture {
 
                         assert.isObject(comments);
                         assert.lengthOf(comments.data, 1);
+
+                        callback();
+                    }
+                );
+            },
+            // Get comments filtered by creater_id and comment_state
+            (callback) => {
+                this._persistence.getPageByFilter(
+                    null,
+                    FilterParams.fromValue({
+                        creator_id:  '2',
+                        comment_state:  CommentStateV1.Approved,
+
+                    }),
+                    new PagingParams(),
+                    (err, comments) => {
+                        assert.isNull(err);
+
+                        assert.isObject(comments);
+                        assert.lengthOf(comments.data, 3);
+
+                        callback();
+                    }
+                );
+            },
+            (callback) => {
+                this._persistence.getPageByFilter(
+                    null,
+                    FilterParams.fromValue({
+                        creator_id:  '1',
+                        comment_state:  CommentStateV1.Approved,
+
+                    }),
+                    new PagingParams(),
+                    (err, comments) => {
+                        assert.isNull(err);
+
+                        assert.isObject(comments);
+                        assert.lengthOf(comments.data, 2);
 
                         callback();
                     }

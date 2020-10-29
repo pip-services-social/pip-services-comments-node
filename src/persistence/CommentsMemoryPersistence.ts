@@ -27,6 +27,9 @@ export class CommentsMemoryPersistence
         let time_from = filter.getAsNullableDateTime('time_from');
         let time_to = filter.getAsNullableDateTime('time_to');
         let empty_parents = filter.getAsBooleanWithDefault('empty_parents', false);
+        let deleted = filter.getAsBooleanWithDefault('deleted', false);
+        let comment_state = filter.getAsNullableString('comment_state');
+
 
         if (_.isString(parent_ids))
             parent_ids = parent_ids.split(',');
@@ -44,8 +47,19 @@ export class CommentsMemoryPersistence
                 return false;
             if (empty_parents && item.parent_ids && item.parent_ids.length > 0)
                 return false;
-            if (creator_id && item.creator_id != creator_id)
-                return false;
+            if (creator_id && comment_state) {
+                if (item.creator_id != creator_id && item.comment_state != comment_state)
+                    return false;
+            } else {
+                if (creator_id && item.creator_id != creator_id)
+                    return false;
+                if (comment_state && item.comment_state != comment_state)
+                    return false;
+            }
+
+            if (deleted && item.deleted != deleted)
+                    return false;
+
             if (time_from && (item.create_time == null || DateTimeConverter.toNullableDateTime(item.create_time) < time_from))
                 return false;
             if (time_to && (item.create_time == null || DateTimeConverter.toNullableDateTime(item.create_time) > time_to))
