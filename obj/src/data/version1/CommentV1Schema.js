@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.CommentV1Schema = void 0;
 const pip_services3_commons_node_1 = require("pip-services3-commons-node");
 const pip_services3_commons_node_2 = require("pip-services3-commons-node");
 const pip_services3_commons_node_3 = require("pip-services3-commons-node");
@@ -12,6 +13,9 @@ class CommentV1Schema extends pip_services3_commons_node_1.ObjectSchema {
         this.withOptionalProperty('id', pip_services3_commons_node_3.TypeCode.String);
         this.withOptionalProperty('refs', new pip_services3_commons_node_2.ArraySchema(new ReferenceV1Schema_1.ReferenceV1Schema()));
         this.withOptionalProperty('parent_ids', new pip_services3_commons_node_2.ArraySchema(pip_services3_commons_node_3.TypeCode.String));
+        this.withOptionalProperty('children_counter', pip_services3_commons_node_3.TypeCode.Long);
+        this.withRequiredProperty('comment_state', pip_services3_commons_node_3.TypeCode.String);
+        this.withRequiredProperty('deleted', pip_services3_commons_node_3.TypeCode.Boolean);
         this.withOptionalProperty('creator_id', pip_services3_commons_node_3.TypeCode.String);
         this.withOptionalProperty('creator_name', pip_services3_commons_node_3.TypeCode.String);
         this.withOptionalProperty('create_time', pip_services3_commons_node_3.TypeCode.DateTime);

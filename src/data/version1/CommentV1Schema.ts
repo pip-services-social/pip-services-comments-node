@@ -11,6 +11,11 @@ export class CommentV1Schema extends ObjectSchema {
         this.withOptionalProperty('id', TypeCode.String);
         this.withOptionalProperty('refs', new ArraySchema(new ReferenceV1Schema()));
         this.withOptionalProperty('parent_ids', new ArraySchema(TypeCode.String));
+        this.withOptionalProperty('children_counter', TypeCode.Long);
+
+        this.withRequiredProperty('comment_state', TypeCode.String);
+        this.withRequiredProperty('deleted', TypeCode.Boolean);
+        
 
         this.withOptionalProperty('creator_id', TypeCode.String);
         this.withOptionalProperty('creator_name', TypeCode.String);

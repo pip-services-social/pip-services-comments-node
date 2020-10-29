@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.MemeTypeV1 = void 0;
 class MemeTypeV1 {
 }
 exports.MemeTypeV1 = MemeTypeV1;

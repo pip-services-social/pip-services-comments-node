@@ -7,6 +7,10 @@ export class CommentV1 implements IStringIdentifiable {
     public id: string;
     public refs?: ReferenceV1[]; // Reference to document or documents this comment bound to
     public parent_ids?: string[]; // Ids of parent comments
+    public children_counter?: number; // Children coments counter
+
+    public comment_state:string; // Comment state
+    public deleted:boolean; 
 
     public creator_id?: string;
     public creator_name?: string;

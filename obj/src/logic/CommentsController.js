@@ -1,5 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.CommentsController = void 0;
+let async = require('async');
 const pip_services3_commons_node_1 = require("pip-services3-commons-node");
 const pip_services3_commons_node_2 = require("pip-services3-commons-node");
 const CommentsCommandSet_1 = require("./CommentsCommandSet");
@@ -20,7 +22,6 @@ class CommentsController {
         return this._commandSet;
     }
     getComments(correlationId, filter, paging, callback) {
-        // console.log(filter);
         if (filter['time_from']) {
             filter['time_from'] = pip_services3_commons_node_1.DateTimeConverter.toNullableDateTime(filter['time_from']);
         }
@@ -33,13 +34,61 @@ class CommentsController {
         this._persistence.getOneById(correlationId, id, callback);
     }
     createComment(correlationId, comment, callback) {
-        this._persistence.create(correlationId, comment, callback);
+        let result;
+        async.series([
+            (callback) => {
+                this._persistence.create(correlationId, comment, (err, item) => {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+                    result = item;
+                    callback();
+                });
+            },
+            (callback) => {
+                if (result != null && result.parent_ids && result.parent_ids.length > 0) {
+                    async.forEach(result.parent_ids, (item, cb) => {
+                        this._persistence.increment(correlationId, item, cb);
+                    }, callback);
+                }
+                else {
+                    callback();
+                }
+            }
+        ], (err) => {
+            callback(err, result);
+        });
     }
     updateComment(correlationId, comment, callback) {
         this._persistence.update(correlationId, comment, callback);
     }
     deleteCommentById(correlationId, id, callback) {
-        this._persistence.deleteById(correlationId, id, callback);
+        let result;
+        async.series([
+            (callback) => {
+                this._persistence.deleteById(correlationId, id, (err, item) => {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+                    result = item;
+                    callback();
+                });
+            },
+            (callback) => {
+                if (result != null && result.parent_ids && result.parent_ids.length > 0) {
+                    async.forEach(result.parent_ids, (item, cb) => {
+                        this._persistence.decrement(correlationId, item, cb);
+                    }, callback);
+                }
+                else {
+                    callback();
+                }
+            }
+        ], (err) => {
+            callback(err, result);
+        });
     }
 }
 exports.CommentsController = CommentsController;

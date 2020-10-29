@@ -12,6 +12,7 @@ import { CommentsMemoryPersistence } from '../../src/persistence/CommentsMemoryP
 import { CommentsController } from '../../src/logic/CommentsController';
 import { CommentsLambdaFunction } from '../../src/container/CommentsLambdaFunction';
 import { ReferenceV1 } from '../../src/data/version1/ReferenceV1';
+import { CommentStateV1 } from '../../src';
 
 let refs = [];
 let ref1: ReferenceV1 ={
@@ -22,12 +23,16 @@ let ref1: ReferenceV1 ={
 refs.push(ref1);
 let COMMENT1: CommentV1 = {
     id: '1',
+    deleted: false,
+    comment_state: CommentStateV1.Submited,
     creator_id: '1',
     creator_name: 'Evgeniy',
     refs: refs,
 };
 let COMMENT2: CommentV1 = {
     id: '2',
+    deleted: false,
+    comment_state: CommentStateV1.Submited,
     creator_id: '2',
     creator_name: 'Tom',
     refs: refs,

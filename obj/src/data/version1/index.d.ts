@@ -10,3 +10,4 @@ export { ContentV1 } from './ContentV1';
 export { ContentV1Schema } from './ContentV1Schema';
 export { CommentV1 } from './CommentV1';
 export { CommentV1Schema } from './CommentV1Schema';
+export { CommentStateV1 } from './CommentStateV1';

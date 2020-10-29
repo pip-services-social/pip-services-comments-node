@@ -12,7 +12,7 @@ import { CommentsMemoryPersistence } from '../../../src/persistence/CommentsMemo
 import { CommentsController } from '../../../src/logic/CommentsController';
 import { CommentsHttpServiceV1 } from '../../../src/services/version1/CommentsHttpServiceV1';
 import { ReferenceV1 } from '../../../src/data/version1/ReferenceV1';
-import { ContentV1, MemeV1 } from '../../../src/data/version1';
+import { CommentStateV1, ContentV1, MemeV1 } from '../../../src/data/version1';
 
 let httpConfig = ConfigParams.fromTuples(
     "connection.protocol", "http",
@@ -53,9 +53,11 @@ memes.push(meme1);
 
 let COMMENT1: CommentV1 = {
     id: '1',
+    deleted: false,
+    comment_state: CommentStateV1.Submited,
     creator_id: '1',
     creator_name: 'Evgeniy',
-    parent_ids: ['5'],
+    parent_ids: [],
     refs: refs,
     create_time:  new Date("2018-07-14"),
     content: contents,
@@ -64,18 +66,22 @@ let COMMENT1: CommentV1 = {
 };
 let COMMENT2: CommentV1 = {
     id: '2',
+    deleted: false,
+    comment_state: CommentStateV1.Submited,
     creator_id: '2',
     creator_name: 'Tom',
     refs: refs,
     create_time:  new Date("2020-07-14"),
-    parent_ids: ['3','4'],
+    parent_ids: ['1'],
 };
 let COMMENT3: CommentV1 = {
     id: '3',
+    deleted: false,
+    comment_state: CommentStateV1.Submited,
     creator_id: '2',
     creator_name: 'Tom',
     create_time:  new Date("2022-07-14"),
-    parent_ids: ['2','3'],
+    parent_ids: ['1','2'],
 };
 suite('CommentsHttpServiceV1', ()=> {    
     let service: CommentsHttpServiceV1;
@@ -113,7 +119,7 @@ suite('CommentsHttpServiceV1', ()=> {
     
     
     test('CommentsHttpSeviceV1', (done) => {
-        let comment1;
+        let comment3;
 
         async.series([
         // Create one comment
@@ -134,8 +140,6 @@ suite('CommentsHttpServiceV1', ()=> {
                         assert.equal(comment.create_time, COMMENT1.create_time.toISOString());
                         assert.equal(comment.content[0].type, COMMENT1.content[0].type);
                         assert.equal(comment.memes[0].type, COMMENT1.memes[0].type);
-
-                        comment1 = comment;
 
                         callback();
                     }
@@ -175,7 +179,7 @@ suite('CommentsHttpServiceV1', ()=> {
                         assert.isObject(comment);
                         assert.equal(comment.creator_id, COMMENT3.creator_id);
                         assert.equal(comment.creator_name, COMMENT3.creator_name);
-
+                        comment3 = comment;
                         callback();
                     }
                 );
@@ -230,12 +234,12 @@ suite('CommentsHttpServiceV1', ()=> {
             (callback) => {
                 rest.post('/v1/comments/get_comments', {
                     filter:{
-                        parent_id: '4'
+                        parent_id: '1'
                     }
                 }, (err, req, res, result) => {
                     assert.isNull(err);
                     assert.isObject(result);
-                    assert.lengthOf(result.data, 1);
+                    assert.lengthOf(result.data, 2);
 
                     callback();
                 });
@@ -245,13 +249,13 @@ suite('CommentsHttpServiceV1', ()=> {
             (callback) => {
                 rest.post('/v1/comments/get_comments', {
                     filter:{
-                        parent_id: '3'
+                        parent_id: '2'
                     }
                 }, (err, req, res, result) => {
                     assert.isNull(err);
 
                     assert.isObject(result);
-                    assert.lengthOf(result.data, 2);
+                    assert.lengthOf(result.data, 1);
                     
                     callback();
                 });
@@ -262,7 +266,7 @@ suite('CommentsHttpServiceV1', ()=> {
             (callback) => {
                 rest.post('/v1/comments/get_comments', {
                     filter:{
-                        parent_ids: '2,5'
+                        parent_ids: '1,2'
                     }
                 }, (err, req, res, result) => {
                         assert.isNull(err);
@@ -310,7 +314,7 @@ suite('CommentsHttpServiceV1', ()=> {
                 );
             },
 
-        // Get all comments
+        // Get all comments and test children_counter
             (callback) => {
                 rest.post('/v1/comments/get_comments',
                     {},
@@ -320,26 +324,29 @@ suite('CommentsHttpServiceV1', ()=> {
                         assert.isObject(page);
                         assert.lengthOf(page.data, 3);
 
+                        assert.equal(page.data[0].children_counter, 2);
+                        assert.equal(page.data[1].children_counter, 1);
+
                         callback();
                     }
                 );
             },
         // Update the comment
             (callback) => {
-                comment1.creator_name = 'Valentin';
+                comment3.creator_name = 'Valentin';
 
                 rest.post('/v1/comments/update_comment',
                     { 
-                        comment: comment1
+                        comment: comment3
                     },
                     (err, req, res, comment) => {
                         assert.isNull(err);
 
                         assert.isObject(comment);
                         assert.equal(comment.creator_name, 'Valentin');
-                        assert.equal(comment.id, COMMENT1.id);
+                        assert.equal(comment.id, COMMENT3.id);
 
-                        comment1 = comment;
+                        comment3 = comment;
 
                         callback();
                     }
@@ -349,7 +356,7 @@ suite('CommentsHttpServiceV1', ()=> {
             (callback) => {
                 rest.post('/v1/comments/delete_comment_by_id',
                     {
-                        comment_id: comment1.id
+                        comment_id: comment3.id
                     },
                     (err, req, res, result) => {
                         assert.isNull(err);
@@ -364,13 +371,35 @@ suite('CommentsHttpServiceV1', ()=> {
             (callback) => {
                 rest.post('/v1/comments/get_comment_by_id',
                     {
-                        comment_id: comment1.id
+                        comment_id: comment3.id
                     },
                     (err, req, res, result) => {
                         assert.isNull(err);
 
                         //assert.isNull(result);
 
+                        callback();
+                    }
+                );
+            },
+            // get first comment
+            (callback) => {
+                rest.post('/v1/comments/get_comment_by_id',
+                    {
+                        comment_id: COMMENT1.id
+                    },
+                    (err, req, res, comment) => {
+                        assert.isNull(err);
+                        assert.isObject(comment);
+                        assert.equal(comment.id, COMMENT1.id);
+                        assert.equal(comment.creator_id, COMMENT1.creator_id);
+                        assert.equal(comment.creator_name, COMMENT1.creator_name);
+                        assert.equal(comment.refs[0].type, COMMENT1.refs[0].type);
+                        assert.equal(comment.create_time, COMMENT1.create_time.toISOString());
+                        assert.equal(comment.content[0].type, COMMENT1.content[0].type);
+                        assert.equal(comment.memes[0].type, COMMENT1.memes[0].type);
+
+                        assert.equal(comment.children_counter, 1);
                         callback();
                     }
                 );

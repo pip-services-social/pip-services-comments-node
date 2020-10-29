@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var CommentsProcess_1 = require("./CommentsProcess");
-exports.CommentsProcess = CommentsProcess_1.CommentsProcess;
+Object.defineProperty(exports, "CommentsProcess", { enumerable: true, get: function () { return CommentsProcess_1.CommentsProcess; } });
 var CommentsLambdaFunction_1 = require("./CommentsLambdaFunction");
-exports.CommentsLambdaFunction = CommentsLambdaFunction_1.CommentsLambdaFunction;
+Object.defineProperty(exports, "CommentsLambdaFunction", { enumerable: true, get: function () { return CommentsLambdaFunction_1.CommentsLambdaFunction; } });
 //# sourceMappingURL=index.js.map

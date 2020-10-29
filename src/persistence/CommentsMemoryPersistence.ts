@@ -8,17 +8,17 @@ import { IdentifiableMemoryPersistence } from 'pip-services3-data-node';
 import { CommentV1 } from '../data/version1/CommentV1';
 import { ICommentsPersistence } from './ICommentsPersistence';
 
-export class CommentsMemoryPersistence 
-    extends IdentifiableMemoryPersistence<CommentV1, string> 
+export class CommentsMemoryPersistence
+    extends IdentifiableMemoryPersistence<CommentV1, string>
     implements ICommentsPersistence {
 
     constructor() {
         super();
     }
-    
+
     private composeFilter(filter: FilterParams): any {
         filter = filter || new FilterParams();
-        
+
         let ref_id = filter.getAsNullableString('ref_id');
         let ref_type = filter.getAsNullableString('ref_type');
         let parent_id = filter.getAsNullableString('parent_id');
@@ -26,11 +26,12 @@ export class CommentsMemoryPersistence
         let creator_id = filter.getAsNullableString('creator_id');
         let time_from = filter.getAsNullableDateTime('time_from');
         let time_to = filter.getAsNullableDateTime('time_to');
+        let empty_parents = filter.getAsBooleanWithDefault('empty_parents', false);
 
         if (_.isString(parent_ids))
             parent_ids = parent_ids.split(',');
         if (!_.isArray(parent_ids))
-            parent_ids = null;  
+            parent_ids = null;
 
         return (item) => {
             if (ref_id && (item.refs == null || item.refs.map(x => x.id).indexOf(ref_id) < 0))
@@ -39,13 +40,15 @@ export class CommentsMemoryPersistence
                 return false;
             if (parent_id && (item.parent_ids == null || item.parent_ids.indexOf(parent_id) < 0))
                 return false;
-            if (parent_ids && (item.parent_ids == null || !parent_ids.some(r=> item.parent_ids.includes(r) == true)  ))
-                return false;                
+            if (parent_ids && (item.parent_ids == null || !parent_ids.some(r => item.parent_ids.includes(r) == true)))
+                return false;
+            if (empty_parents && item.parent_ids && item.parent_ids.length > 0)
+                return false;
             if (creator_id && item.creator_id != creator_id)
                 return false;
-            if (time_from  && (item.create_time == null || DateTimeConverter.toNullableDateTime(item.create_time) < time_from ))
+            if (time_from && (item.create_time == null || DateTimeConverter.toNullableDateTime(item.create_time) < time_from))
                 return false;
-            if (time_to && (item.create_time == null || DateTimeConverter.toNullableDateTime(item.create_time) > time_to ))
+            if (time_to && (item.create_time == null || DateTimeConverter.toNullableDateTime(item.create_time) > time_to))
                 return false;
             return true;
         };
@@ -56,22 +59,53 @@ export class CommentsMemoryPersistence
         super.getPageByFilter(correlationId, this.composeFilter(filter), paging, null, null, callback);
     }
 
-    public getOneById(correlationId: string, id: string, 
-        callback: (err: any, item: CommentV1) => void): void{
-            let item = _.find(this._items, (item) => item.id == id);
-            if (item != null) this._logger.trace(correlationId, "Found comment by %s", id);
-            else this._logger.trace(correlationId, "Cannot find comment by %s", id);
-            callback(null, item);
+    public getOneById(correlationId: string, id: string,
+        callback: (err: any, item: CommentV1) => void): void {
+        let item = _.find(this._items, (item) => item.id == id);
+        if (item != null) this._logger.trace(correlationId, "Found comment by %s", id);
+        else this._logger.trace(correlationId, "Cannot find comment by %s", id);
+        callback(null, item);
     }
 
     public create(correlationId: string, comment: CommentV1,
-        callback: (err:any, item: CommentV1) => void): void {
-            let comment_model = new CommentV1;
-            super.create(null, comment,
-                (err, item) =>{
-                    if (item != null) this._logger.trace(correlationId, "Create comment by %s", comment);
-                    else this._logger.trace(correlationId, "Cannot create key by %s", comment);
-                    callback(err, item);
-                });
+        callback: (err: any, item: CommentV1) => void): void {
+        super.create(null, comment,
+            (err, item) => {
+                if (item != null) this._logger.trace(correlationId, "Create comment by %s", comment);
+                else this._logger.trace(correlationId, "Cannot create key by %s", comment);
+                callback(err, item);
+            });
     }
+
+    public increment(correlationId: string, id: string, callback?: (err: any, comment: CommentV1) => void): void {
+        this.getOneById(correlationId, id, (err, item) => {
+            if (err) {
+                if (callback) callback(err, item);
+            }
+
+            if (item) {
+                item.children_counter = (item.children_counter ?? 0) + 1;
+                this.update(correlationId, item, callback);
+            }
+            else {
+                callback(err, item);
+            }
+        })
+    }
+
+    public decrement(correlationId: string, id: string, callback?: (err: any, comment: CommentV1) => void): void {
+        this.getOneById(correlationId, id, (err, item) => {
+            if (err) {
+                if (callback) callback(err, item);
+            }
+
+            if (item) {
+                item.children_counter = (item.children_counter ?? 0) - 1;
+                this.update(correlationId, item, callback);
+            } else {
+                callback(err, item);
+            }
+        })
+    }
+
 }

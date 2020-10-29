@@ -6,6 +6,9 @@ export declare class CommentV1 implements IStringIdentifiable {
     id: string;
     refs?: ReferenceV1[];
     parent_ids?: string[];
+    children_counter?: number;
+    comment_state: string;
+    deleted: boolean;
     creator_id?: string;
     creator_name?: string;
     create_time?: Date;

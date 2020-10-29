@@ -10,4 +10,6 @@ export interface ICommentsPersistence extends IGetter<CommentV1, string>, IWrite
     create(correlationId: string, item: CommentV1, callback: (err: any, item: CommentV1) => void): void;
     update(correlationId: string, item: CommentV1, callback: (err: any, item: CommentV1) => void): void;
     deleteById(correlationId: string, id: string, callback: (err: any, item: CommentV1) => void): void;
+    increment(correlationId: string, id: string, callback?: (err: any, review: CommentV1) => void): void;
+    decrement(correlationId: string, id: string, callback?: (err: any, review: CommentV1) => void): void;
 }

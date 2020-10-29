@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ContentTypeV1 = void 0;
 class ContentTypeV1 {
 }
 exports.ContentTypeV1 = ContentTypeV1;

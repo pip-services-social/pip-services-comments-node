@@ -8,4 +8,6 @@ export declare class CommentsMongoDbPersistence extends IdentifiableMongoDbPersi
     constructor();
     private composeFilter;
     getPageByFilter(correlationId: string, filter: FilterParams, paging: PagingParams, callback: (err: any, page: DataPage<CommentV1>) => void): void;
+    increment(correlationId: string, id: string, callback?: (err: any, review: CommentV1) => void): void;
+    decrement(correlationId: string, id: string, callback?: (err: any, review: CommentV1) => void): void;
 }

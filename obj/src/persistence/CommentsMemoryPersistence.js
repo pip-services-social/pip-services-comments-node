@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.CommentsMemoryPersistence = void 0;
 let _ = require('lodash');
 const pip_services3_commons_node_1 = require("pip-services3-commons-node");
 const pip_services3_data_node_1 = require("pip-services3-data-node");
-const CommentV1_1 = require("../data/version1/CommentV1");
 class CommentsMemoryPersistence extends pip_services3_data_node_1.IdentifiableMemoryPersistence {
     constructor() {
         super();
@@ -17,6 +17,7 @@ class CommentsMemoryPersistence extends pip_services3_data_node_1.IdentifiableMe
         let creator_id = filter.getAsNullableString('creator_id');
         let time_from = filter.getAsNullableDateTime('time_from');
         let time_to = filter.getAsNullableDateTime('time_to');
+        let empty_parents = filter.getAsBooleanWithDefault('empty_parents', false);
         if (_.isString(parent_ids))
             parent_ids = parent_ids.split(',');
         if (!_.isArray(parent_ids))
@@ -29,6 +30,8 @@ class CommentsMemoryPersistence extends pip_services3_data_node_1.IdentifiableMe
             if (parent_id && (item.parent_ids == null || item.parent_ids.indexOf(parent_id) < 0))
                 return false;
             if (parent_ids && (item.parent_ids == null || !parent_ids.some(r => item.parent_ids.includes(r) == true)))
+                return false;
+            if (empty_parents && item.parent_ids && item.parent_ids.length > 0)
                 return false;
             if (creator_id && item.creator_id != creator_id)
                 return false;
@@ -51,13 +54,44 @@ class CommentsMemoryPersistence extends pip_services3_data_node_1.IdentifiableMe
         callback(null, item);
     }
     create(correlationId, comment, callback) {
-        let comment_model = new CommentV1_1.CommentV1;
         super.create(null, comment, (err, item) => {
             if (item != null)
                 this._logger.trace(correlationId, "Create comment by %s", comment);
             else
                 this._logger.trace(correlationId, "Cannot create key by %s", comment);
             callback(err, item);
+        });
+    }
+    increment(correlationId, id, callback) {
+        this.getOneById(correlationId, id, (err, item) => {
+            var _a;
+            if (err) {
+                if (callback)
+                    callback(err, item);
+            }
+            if (item) {
+                item.children_counter = ((_a = item.children_counter) !== null && _a !== void 0 ? _a : 0) + 1;
+                this.update(correlationId, item, callback);
+            }
+            else {
+                callback(err, item);
+            }
+        });
+    }
+    decrement(correlationId, id, callback) {
+        this.getOneById(correlationId, id, (err, item) => {
+            var _a;
+            if (err) {
+                if (callback)
+                    callback(err, item);
+            }
+            if (item) {
+                item.children_counter = ((_a = item.children_counter) !== null && _a !== void 0 ? _a : 0) - 1;
+                this.update(correlationId, item, callback);
+            }
+            else {
+                callback(err, item);
+            }
         });
     }
 }

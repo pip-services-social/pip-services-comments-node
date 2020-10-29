@@ -10,7 +10,7 @@ import { CommentV1 } from '../../src/data/version1/CommentV1';
 import { ICommentsPersistence } from '../../src/persistence/ICommentsPersistence';
 import { ReferenceV1 } from '../../src/data/version1/ReferenceV1';
 import { ContentV1 } from '../../src/data/version1/ContentV1';
-import { MemeV1 } from '../../src';
+import { CommentStateV1, MemeV1 } from '../../src';
 
 
 let refs = [];
@@ -46,6 +46,8 @@ memes.push(meme1);
 
 let COMMENT1: CommentV1 = {
     id: '1',
+    deleted: false,
+    comment_state: CommentStateV1.Submited,
     creator_id: '1',
     creator_name: 'Evgeniy',
     parent_ids: ['5'],
@@ -57,6 +59,8 @@ let COMMENT1: CommentV1 = {
 };
 let COMMENT2: CommentV1 = {
     id: '2',
+    deleted: false,
+    comment_state: CommentStateV1.Submited,
     creator_id: '2',
     creator_name: 'Tom',
     refs: refs,
@@ -65,9 +69,20 @@ let COMMENT2: CommentV1 = {
 };
 let COMMENT3: CommentV1 = {
     id: '3',
+    deleted: false,
+    comment_state: CommentStateV1.Submited,
     creator_id: '2',
     creator_name: 'Tom',
     parent_ids: ['2','3'],
+};
+
+let COMMENT4: CommentV1 = {
+    id: '4',
+    deleted: false,
+    comment_state: CommentStateV1.Submited,
+    creator_id: '3',
+    creator_name: 'Eddy',
+    parent_ids: [],
 };
 
 export class CommentsPersistenceFixture {
@@ -135,6 +150,24 @@ export class CommentsPersistenceFixture {
                         callback();
                     }
                 );
+            },
+            // Create yet another comment
+            (callback) => {
+                this._persistence.create(
+                    null,
+                    COMMENT4,
+                    (err, comment) => {
+                        assert.isNull(err);
+
+                        assert.isObject(comment);
+                        assert.equal(comment.id, COMMENT4.id);
+                        assert.equal(comment.creator_id, COMMENT4.creator_id);
+                        assert.equal(comment.creator_name, COMMENT4.creator_name);
+                        assert.equal(comment.parent_ids[0], COMMENT4.parent_ids[0]);
+
+                        callback();
+                    }
+                );
             }
         ], done);
     }
@@ -157,7 +190,7 @@ export class CommentsPersistenceFixture {
                         assert.isNull(err);
 
                         assert.isObject(page);
-                        assert.lengthOf(page.data, 3);
+                        assert.lengthOf(page.data, 4);
 
                         comment1 = page.data[0];
 
@@ -326,6 +359,24 @@ export class CommentsPersistenceFixture {
 
                     assert.isObject(comments);
                     assert.lengthOf(comments.data, 2);
+
+                    callback();
+                }
+            );
+        },
+        // Get comments filtered by empty_parent
+        (callback) => {
+            this._persistence.getPageByFilter(
+                null,
+                FilterParams.fromValue({
+                    empty_parents: true
+                }),
+                new PagingParams(),
+                (err, comments) => {
+                    assert.isNull(err);
+
+                    assert.isObject(comments);
+                    assert.lengthOf(comments.data, 1);
 
                     callback();
                 }

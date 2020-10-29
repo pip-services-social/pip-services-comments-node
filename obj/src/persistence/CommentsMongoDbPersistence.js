@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.CommentsMongoDbPersistence = void 0;
 let _ = require('lodash');
 const pip_services3_commons_node_1 = require("pip-services3-commons-node");
 const pip_services3_mongodb_node_1 = require("pip-services3-mongodb-node");
@@ -21,15 +22,25 @@ class CommentsMongoDbPersistence extends pip_services3_mongodb_node_1.Identifiab
         if (ref_type != null) {
             criteria.push({ 'refs.type': ref_type });
         }
+        let empty_parents = filter.getAsBooleanWithDefault('empty_parents', false);
+        if (empty_parents) {
+            criteria.push({
+                $or: [
+                    { parent_ids: { $eq: null } },
+                    { parent_ids: { $exists: false } },
+                    { parent_ids: { $size: 0 } },
+                ]
+            });
+        }
         let parent_id = filter.getAsNullableString('parent_id');
         if (parent_id != null) {
-            criteria.push({ parent_ids: { $in: [parent_id] } });
+            criteria.push({ parent_ids: { $elemMatch: { $eq: parent_id } } });
         }
         let parent_ids = filter.getAsObject('parent_ids');
         if (_.isString(parent_ids))
             parent_ids = parent_ids.split(',');
         if (_.isArray(parent_ids))
-            criteria.push({ parent_ids: { $in: parent_ids } });
+            criteria.push({ parent_ids: { $elemMatch: { $in: parent_ids } } });
         let creator_id = filter.getAsNullableString('creator_id');
         if (creator_id != null) {
             criteria.push({ 'creator_id': creator_id });
@@ -51,6 +62,47 @@ class CommentsMongoDbPersistence extends pip_services3_mongodb_node_1.Identifiab
     }
     getPageByFilter(correlationId, filter, paging, callback) {
         super.getPageByFilter(correlationId, this.composeFilter(filter), paging, null, null, callback);
+    }
+    increment(correlationId, id, callback) {
+        let criteria = {
+            _id: id
+        };
+        let update = { $inc: { children_counter: 1 } };
+        let options = {
+            upsert: true,
+            returnOriginal: false
+        };
+        this._collection.findOneAndUpdate(criteria, update, options, (err, result) => {
+            let item = result ? this.convertToPublic(result.value) : null;
+            if (err == null) {
+                if (item)
+                    this._logger.trace(correlationId, "Updated in %s with id = %s", this._collection, item.id);
+                else
+                    this._logger.trace(correlationId, "Item %s was not found", id);
+            }
+            if (callback)
+                callback(err, item);
+        });
+    }
+    decrement(correlationId, id, callback) {
+        let criteria = {
+            _id: id
+        };
+        let update = { $inc: { children_counter: -1 } };
+        let options = {
+            returnOriginal: false
+        };
+        this._collection.findOneAndUpdate(criteria, update, options, (err, result) => {
+            let item = result ? this.convertToPublic(result.value) : null;
+            if (err == null) {
+                if (item)
+                    this._logger.trace(correlationId, "Updated in %s with id = %s", this._collection, item.id);
+                else
+                    this._logger.trace(correlationId, "Item %s was not found", id);
+            }
+            if (callback)
+                callback(err, item);
+        });
     }
 }
 exports.CommentsMongoDbPersistence = CommentsMongoDbPersistence;
