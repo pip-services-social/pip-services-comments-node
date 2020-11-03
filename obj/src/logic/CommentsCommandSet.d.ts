@@ -8,4 +8,7 @@ export declare class CommentsCommandSet extends CommandSet {
     private makeCreateCommentCommand;
     private makeUpdateCommentCommand;
     private makeDeleteCommentByIdCommand;
+    private makeUpdateStateCommentCommand;
+    private makeAddCommentMemeCommand;
+    private makeRemoveCommentMemeCommand;
 }

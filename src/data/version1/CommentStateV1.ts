@@ -1,5 +1,5 @@
 export class CommentStateV1 {
-    public static Submited = 'submited';
+    public static Submitted = 'submitted';
     public static Approved = 'approved';
     public static Rejected = 'rejected';
 }

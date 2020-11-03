@@ -59,6 +59,8 @@ export class CommentsController implements IConfigurable, IReferenceable, IComma
     public createComment(correlationId: string, comment: CommentV1,
         callback: (err: any, comment: CommentV1) => void): void {
         let result: CommentV1;
+
+        comment.children_counter = 0;
         async.series([
             (callback) => {
                 this._persistence.create(correlationId, comment, (err, item) => {
@@ -115,5 +117,15 @@ export class CommentsController implements IConfigurable, IReferenceable, IComma
         ], (err) => {
             callback(err, result)
         })
+    }
+
+    addMemeToComment(correlationId: string, id: string, creator_id: string, meme_type: string, callback: (err: any, review: CommentV1) => void): void {
+        this._persistence.addMeme(correlationId, id, creator_id, meme_type, callback);
+    }
+    removeMemeFromComment(correlationId: string, id: string, creator_id: string, meme_type: string, callback: (err: any, review: CommentV1) => void): void {
+        this._persistence.removeMeme(correlationId, id, creator_id, meme_type, callback);
+    }
+    updateCommentState(correlationId: string, id: string, state: String, callback: (err: any, review: CommentV1) => void): void {
+        this._persistence.updateState(correlationId, id, state, callback);
     }
 }

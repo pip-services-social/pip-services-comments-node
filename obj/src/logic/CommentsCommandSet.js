@@ -20,6 +20,9 @@ class CommentsCommandSet extends pip_services3_commons_node_1.CommandSet {
         this.addCommand(this.makeCreateCommentCommand());
         this.addCommand(this.makeUpdateCommentCommand());
         this.addCommand(this.makeDeleteCommentByIdCommand());
+        this.addCommand(this.makeUpdateStateCommentCommand());
+        this.addCommand(this.makeAddCommentMemeCommand());
+        this.addCommand(this.makeRemoveCommentMemeCommand());
     }
     makeGetCommentsCommand() {
         return new pip_services3_commons_node_2.Command("get_comments", new pip_services3_commons_node_5.ObjectSchema(true)
@@ -56,6 +59,37 @@ class CommentsCommandSet extends pip_services3_commons_node_1.CommandSet {
             .withRequiredProperty('comment_id', pip_services3_commons_node_6.TypeCode.String), (correlationId, args, callback) => {
             let commentId = args.getAsNullableString("comment_id");
             this._logic.deleteCommentById(correlationId, commentId, callback);
+        });
+    }
+    makeUpdateStateCommentCommand() {
+        return new pip_services3_commons_node_2.Command("update_comment_state", new pip_services3_commons_node_5.ObjectSchema(true)
+            .withRequiredProperty('id', pip_services3_commons_node_6.TypeCode.String)
+            .withRequiredProperty('state', pip_services3_commons_node_6.TypeCode.String), (correlationId, args, callback) => {
+            let id = args.get("id");
+            let state = args.get("state");
+            this._logic.updateCommentState(correlationId, id, state, callback);
+        });
+    }
+    makeAddCommentMemeCommand() {
+        return new pip_services3_commons_node_2.Command("add_comment_meme", new pip_services3_commons_node_5.ObjectSchema(true)
+            .withRequiredProperty('id', pip_services3_commons_node_6.TypeCode.String)
+            .withRequiredProperty('creator_id', pip_services3_commons_node_6.TypeCode.String)
+            .withRequiredProperty('meme_type', pip_services3_commons_node_6.TypeCode.String), (correlationId, args, callback) => {
+            let id = args.get("id");
+            let creatorId = args.get("creator_id");
+            let memeType = args.get("meme_type");
+            this._logic.addMemeToComment(correlationId, id, creatorId, memeType, callback);
+        });
+    }
+    makeRemoveCommentMemeCommand() {
+        return new pip_services3_commons_node_2.Command("remove_comment_meme", new pip_services3_commons_node_5.ObjectSchema(true)
+            .withRequiredProperty('id', pip_services3_commons_node_6.TypeCode.String)
+            .withRequiredProperty('creator_id', pip_services3_commons_node_6.TypeCode.String)
+            .withRequiredProperty('meme_type', pip_services3_commons_node_6.TypeCode.String), (correlationId, args, callback) => {
+            let id = args.get("id");
+            let creatorId = args.get("creator_id");
+            let memeType = args.get("meme_type");
+            this._logic.removeMemeFromComment(correlationId, id, creatorId, memeType, callback);
         });
     }
 }

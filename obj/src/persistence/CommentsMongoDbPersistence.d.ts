@@ -10,4 +10,7 @@ export declare class CommentsMongoDbPersistence extends IdentifiableMongoDbPersi
     getPageByFilter(correlationId: string, filter: FilterParams, paging: PagingParams, callback: (err: any, page: DataPage<CommentV1>) => void): void;
     increment(correlationId: string, id: string, callback?: (err: any, review: CommentV1) => void): void;
     decrement(correlationId: string, id: string, callback?: (err: any, review: CommentV1) => void): void;
+    addMeme(correlationId: string, id: string, creator_id: string, meme_type: string, callback: (err: any, review: CommentV1) => void): void;
+    removeMeme(correlationId: string, id: string, creator_id: string, meme_type: string, callback: (err: any, review: CommentV1) => void): void;
+    updateState(correlationId: string, id: string, state: String, callback: (err: any, review: CommentV1) => void): void;
 }

@@ -18,7 +18,9 @@ suite('CommentsFilePersistence', ()=> {
     });
     
     teardown((done) => {
-        persistence.close(null, done);
+        persistence.clear(null, (err) => {
+            persistence.close(null, done);
+        });
     });
         
     test('CRUD Operations', (done) => {

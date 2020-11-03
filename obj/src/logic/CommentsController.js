@@ -35,6 +35,7 @@ class CommentsController {
     }
     createComment(correlationId, comment, callback) {
         let result;
+        comment.children_counter = 0;
         async.series([
             (callback) => {
                 this._persistence.create(correlationId, comment, (err, item) => {
@@ -89,6 +90,15 @@ class CommentsController {
         ], (err) => {
             callback(err, result);
         });
+    }
+    addMemeToComment(correlationId, id, creator_id, meme_type, callback) {
+        this._persistence.addMeme(correlationId, id, creator_id, meme_type, callback);
+    }
+    removeMemeFromComment(correlationId, id, creator_id, meme_type, callback) {
+        this._persistence.removeMeme(correlationId, id, creator_id, meme_type, callback);
+    }
+    updateCommentState(correlationId, id, state, callback) {
+        this._persistence.updateState(correlationId, id, state, callback);
     }
 }
 exports.CommentsController = CommentsController;

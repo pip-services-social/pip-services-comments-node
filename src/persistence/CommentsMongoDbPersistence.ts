@@ -1,9 +1,11 @@
 let _ = require('lodash');
 
+import { count } from 'console';
 import { FilterParams } from 'pip-services3-commons-node';
 import { PagingParams } from 'pip-services3-commons-node';
 import { DataPage } from 'pip-services3-commons-node';
 import { IdentifiableMongoDbPersistence } from 'pip-services3-mongodb-node';
+import { MemeV1Schema } from '../data/version1';
 
 import { CommentV1 } from '../data/version1/CommentV1';
 import { ICommentsPersistence } from './ICommentsPersistence';
@@ -49,7 +51,7 @@ export class CommentsMongoDbPersistence
         let comment_state = filter.getAsNullableString('comment_state');
         let creator_id = filter.getAsNullableString('creator_id');
 
-        if (comment_state!= null && creator_id!= null) {
+        if (comment_state != null && creator_id != null) {
             criteria.push({
                 $or: [
                     { comment_state: comment_state },
@@ -85,8 +87,8 @@ export class CommentsMongoDbPersistence
             criteria.push({ create_time: { $lt: time_to } });
         }
 
-        let deleted = filter.getAsBooleanWithDefault('deleted', false);
-        if (deleted) {
+        let deleted = filter.getAsNullableBoolean('deleted');
+        if (deleted != null) {
             criteria.push({ deleted: deleted });
         }
 
@@ -155,5 +157,114 @@ export class CommentsMongoDbPersistence
 
             if (callback) callback(err, item);
         })
+    }
+
+    public addMeme(correlationId: string, id: string, creator_id: string, meme_type: string, callback: (err: any, review: CommentV1) => void): void {
+        let criteria = {
+            _id: id
+            //'memes.$.type': $elemMatch:{$eq:meme_type}
+        };
+
+        let update = {
+            $push: {
+                'memes.$[elem].creator_ids': creator_id,
+            },
+            $inc: { 'memes.$[elem].count': 1 },
+            $setOnInsert: {
+                $push: {
+                    'memes': {
+                        'type': meme_type,
+                        $push: {
+                            'creator_ids': creator_id
+                        },
+                        'count': 1
+                    }
+                }
+            }
+        };
+
+        let options = {
+            returnOriginal: false,
+            upsert: true,
+            arrayFilters: [{ "elem.type": { $eq: meme_type } }]
+        };
+
+        this._collection.findOneAndUpdate(criteria, update, options, (err, result) => {
+            let item = result ? this.convertToPublic(result.value) : null;
+
+            if (err == null) {
+                if (item)
+                    this._logger.trace(correlationId, "Meme added in %s with id = %s", this._collection, item.id);
+                else
+                    this._logger.trace(correlationId, "Comment %s was not found", id);
+            }
+            callback(err, item);
+        });
+    }
+
+
+    public removeMeme(correlationId: string, id: string, creator_id: string, meme_type: string, callback: (err: any, review: CommentV1) => void): void {
+        let criteria = {
+            _id: id
+        };
+
+        let update = {
+            $pull: {
+                'memes.$[elem].creator_ids': creator_id,
+            },
+            $inc: { 'memes.$[elem].count': -1 }
+        };
+
+        let options = {
+            returnOriginal: false,
+            arrayFilters: [{
+                $and: [
+                    { 'elem.type': { $eq: meme_type } },
+                    { 'elem.creator_ids': { $elemMatch: { $eq: creator_id } } }
+                ]
+            }]
+        };
+
+        this._collection.findOneAndUpdate(criteria, update, options, (err, result) => {
+            let item = result ? this.convertToPublic(result.value) : null;
+
+            if (err == null) {
+                if (item)
+                    this._logger.trace(correlationId, "Meme added in %s with id = %s", this._collection, item.id);
+                else
+                    this._logger.trace(correlationId, "Comment %s was not found", id);
+            }
+            callback(err, item);
+        });
+
+    }
+
+    public updateState(correlationId: string, id: string, state: String, callback: (err: any, review: CommentV1) => void): void {
+        let criteria = {
+            _id: id
+        };
+
+        let update = {
+            $set: {
+                comment_state: state,
+            }
+        };
+
+        let options = {
+            returnOriginal: false
+        };
+
+        this._collection.findOneAndUpdate(criteria, update, options, (err, result) => {
+            let item = result ? this.convertToPublic(result.value) : null;
+
+            if (err == null) {
+                if (item)
+                    this._logger.trace(correlationId, "Updated state in %s with id = %s", this._collection, item.id);
+                else
+                    this._logger.trace(correlationId, "Comment %s was not found", id);
+            }
+            callback(err, item);
+        });
+
     }
 }

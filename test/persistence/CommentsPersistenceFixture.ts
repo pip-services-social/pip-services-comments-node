@@ -14,14 +14,14 @@ import { CommentStateV1, MemeV1 } from '../../src';
 
 
 let refs = [];
-let ref1: ReferenceV1 ={
+const ref1: ReferenceV1 ={
     id: '4',
     type: 'page', 
     name: 'reference page',
 }
 refs.push(ref1);
 
-let ref2: ReferenceV1 ={
+const ref2: ReferenceV1 ={
     id: '5',
     type: 'page', 
     name: 'reference page2',
@@ -37,14 +37,14 @@ let content1: ContentV1 = {
 }
 contents.push(content1);
 
-let memes = [];
-let meme1: MemeV1 = {
+
+const meme1: MemeV1 = {
     type: 'like',
     count: 1,
+    creator_ids: ['2']
 }
-memes.push(meme1);
 
-let COMMENT1: CommentV1 = {
+const  COMMENT1: CommentV1 = {
     id: '1',
     deleted: true,
     comment_state: CommentStateV1.Approved,
@@ -54,10 +54,10 @@ let COMMENT1: CommentV1 = {
     refs: refs,
     create_time:  new Date("2018-07-14"),
     content: contents,
-    memes: memes  
+    memes: [meme1]  
     
 };
-let COMMENT2: CommentV1 = {
+const COMMENT2: CommentV1 = {
     id: '2',
     deleted: false,
     comment_state: CommentStateV1.Approved,
@@ -67,20 +67,20 @@ let COMMENT2: CommentV1 = {
     create_time:  new Date("2020-07-14"),
     parent_ids: ['3','4'],
 };
-let COMMENT3: CommentV1 = {
+const COMMENT3: CommentV1 = {
     id: '3',
     deleted: false,
-    comment_state: CommentStateV1.Submited,
+    comment_state: CommentStateV1.Submitted,
     creator_id: '2',
     creator_name: 'Tom',
     refs: refs,
     parent_ids: ['2','3'],
 };
 
-let COMMENT4: CommentV1 = {
+const COMMENT4: CommentV1 = {
     id: '4',
     deleted: false,
-    comment_state: CommentStateV1.Submited,
+    comment_state: CommentStateV1.Submitted,
     creator_id: '3',
     creator_name: 'Eddy',
     parent_ids: [],
@@ -217,6 +217,67 @@ export class CommentsPersistenceFixture {
                     }
                 );
             },
+
+            // Update the state
+            (callback) => {
+
+                this._persistence.updateState(
+                    null,
+                    comment1.id, CommentStateV1.Rejected,
+                    (err, comment) => {
+                        assert.isNull(err);
+
+                        assert.isObject(comment);
+                        assert.equal(comment.comment_state, CommentStateV1.Rejected);
+                        assert.equal(comment.id, comment1.id);
+
+                        callback();
+                    }
+                );
+            },
+
+            // // Add meme to first comment with exists memes
+            // (callback) => {
+
+            //     this._persistence.addMeme(
+            //         null,
+            //         COMMENT1.id, '3', MemeTypeV1.Dislike,
+            //         (err, comment) => {
+            //             assert.isNull(err);
+
+            //             assert.isObject(comment);
+            //             assert.equal(comment.id, comment1.id);
+            //             assert.equal(comment.memes.length, 2);
+            //             assert.equal(comment.memes[1].type, MemeTypeV1.Dislike)
+            //             assert.equal(comment.memes[1].creator_ids.length, 1)
+            //             assert.equal(comment.memes[1].count, 1)
+                        
+            //             callback();
+            //         }
+            //     );
+            // },
+            
+            // // Add meme to first comment with exists memes
+            // (callback) => {
+
+            //     this._persistence.addMeme(
+            //         null,
+            //         COMMENT1.id, '1', MemeTypeV1.Like,
+            //         (err, comment) => {
+            //             assert.isNull(err);
+
+            //             assert.isObject(comment);
+            //             assert.equal(comment.id, comment1.id);
+            //             assert.equal(comment.memes.length, 2);
+            //             assert.equal(comment.memes[0].type, MemeTypeV1.Like)
+            //             assert.equal(comment.memes[0].creator_ids.length, 2)
+            //             assert.equal(comment.memes[0].count, 2)
+                        
+            //             callback();
+            //         }
+            //     );
+            // },
+
         // Delete comment
             (callback) => {
                 this._persistence.deleteById(
@@ -378,6 +439,24 @@ export class CommentsPersistenceFixture {
 
                     assert.isObject(comments);
                     assert.lengthOf(comments.data, 1);
+
+                    callback();
+                }
+            );
+        },
+        // Get comments filtered by parent_ids
+        (callback) => {
+            this._persistence.getPageByFilter(
+                null,
+                FilterParams.fromValue({
+                    deleted: false
+                }),
+                new PagingParams(),
+                (err, comments) => {
+                    assert.isNull(err);
+
+                    assert.isObject(comments);
+                    assert.lengthOf(comments.data, 3);
 
                     callback();
                 }

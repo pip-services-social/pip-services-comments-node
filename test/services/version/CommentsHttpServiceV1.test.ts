@@ -54,7 +54,7 @@ memes.push(meme1);
 let COMMENT1: CommentV1 = {
     id: '1',
     deleted: false,
-    comment_state: CommentStateV1.Submited,
+    comment_state: CommentStateV1.Submitted,
     creator_id: '1',
     creator_name: 'Evgeniy',
     parent_ids: [],
@@ -67,7 +67,7 @@ let COMMENT1: CommentV1 = {
 let COMMENT2: CommentV1 = {
     id: '2',
     deleted: false,
-    comment_state: CommentStateV1.Submited,
+    comment_state: CommentStateV1.Submitted,
     creator_id: '2',
     creator_name: 'Tom',
     refs: refs,
@@ -77,7 +77,7 @@ let COMMENT2: CommentV1 = {
 let COMMENT3: CommentV1 = {
     id: '3',
     deleted: false,
-    comment_state: CommentStateV1.Submited,
+    comment_state: CommentStateV1.Submitted,
     creator_id: '2',
     creator_name: 'Tom',
     create_time:  new Date("2022-07-14"),
@@ -326,6 +326,27 @@ suite('CommentsHttpServiceV1', ()=> {
 
                         assert.equal(page.data[0].children_counter, 2);
                         assert.equal(page.data[1].children_counter, 1);
+
+                        callback();
+                    }
+                );
+            },
+            // Update the comment state
+            (callback) => {
+
+                rest.post('/v1/comments/update_comment_state',
+                    { 
+                        id: comment3.id,
+                        state: CommentStateV1.Rejected
+                    },
+                    (err, req, res, comment) => {
+                        assert.isNull(err);
+
+                        assert.isObject(comment);
+                        assert.equal(comment.id, COMMENT3.id);
+                        assert.equal(comment.comment_state, CommentStateV1.Rejected);
+
+                        comment3 = comment;
 
                         callback();
                     }

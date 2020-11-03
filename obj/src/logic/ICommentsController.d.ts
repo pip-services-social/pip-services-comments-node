@@ -8,4 +8,7 @@ export interface ICommentsController {
     createComment(correlationId: string, comment: CommentV1, callback: (err: any, comment: CommentV1) => void): void;
     updateComment(correlationId: string, comment: CommentV1, callback: (err: any, comment: CommentV1) => void): void;
     deleteCommentById(correlationId: string, comment_id: string, callback: (err: any, comment: CommentV1) => void): void;
+    addMemeToComment(correlationId: string, id: string, creator_id: string, meme_type: string, callback: (err: any, review: CommentV1) => void): void;
+    removeMemeFromComment(correlationId: string, id: string, creator_id: string, meme_type: string, callback: (err: any, review: CommentV1) => void): void;
+    updateCommentState(correlationId: string, id: string, state: String, callback: (err: any, review: CommentV1) => void): void;
 }

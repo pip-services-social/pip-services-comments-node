@@ -24,7 +24,7 @@ refs.push(ref1);
 let COMMENT1: CommentV1 = {
     id: '1',
     deleted: false,
-    comment_state: CommentStateV1.Submited,
+    comment_state: CommentStateV1.Submitted,
     creator_id: '1',
     creator_name: 'Evgeniy',
     refs: refs,
@@ -32,7 +32,7 @@ let COMMENT1: CommentV1 = {
 let COMMENT2: CommentV1 = {
     id: '2',
     deleted: false,
-    comment_state: CommentStateV1.Submited,
+    comment_state: CommentStateV1.Submitted,
     creator_id: '2',
     creator_name: 'Tom',
     refs: refs,
