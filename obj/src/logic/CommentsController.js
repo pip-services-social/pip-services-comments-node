@@ -101,7 +101,31 @@ class CommentsController {
         this._persistence.updateState(correlationId, id, state, callback);
     }
     markCommentAsDeleted(correlationId, id, callback) {
-        this._persistence.markAsDeleted(correlationId, id, callback);
+        let result;
+        async.series([
+            (callback) => {
+                this._persistence.markAsDeleted(correlationId, id, (err, item) => {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+                    result = item;
+                    callback();
+                });
+            },
+            (callback) => {
+                if (result != null && result.parent_ids && result.parent_ids.length > 0) {
+                    async.forEach(result.parent_ids, (item, cb) => {
+                        this._persistence.decrement(correlationId, item, cb);
+                    }, callback);
+                }
+                else {
+                    callback();
+                }
+            }
+        ], (err) => {
+            callback(err, result);
+        });
     }
 }
 exports.CommentsController = CommentsController;

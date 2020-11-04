@@ -132,6 +132,29 @@ export class CommentsController implements IConfigurable, IReferenceable, IComma
     }
 
     markCommentAsDeleted(correlationId: string, id: string, callback: (err: any, review: CommentV1) => void): void {
-        this._persistence.markAsDeleted(correlationId, id, callback);
+        let result: CommentV1;
+        async.series([
+            (callback) => {
+                this._persistence.markAsDeleted(correlationId, id, (err, item) => {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+                    result = item;
+                    callback()
+                });
+            },
+            (callback) => {
+                if (result != null && result.parent_ids && result.parent_ids.length > 0) {
+                    async.forEach(result.parent_ids, (item, cb) => {
+                        this._persistence.decrement(correlationId, item, cb);
+                    }, callback);
+                } else {
+                    callback();
+                }
+            }
+        ], (err) => {
+            callback(err, result)
+        })
     }
 }

@@ -441,7 +441,7 @@ suite('CommentsHttpServiceV1', ()=> {
                         assert.equal(comment.content[0].type, COMMENT1.content[0].type);
                         assert.equal(comment.memes[0].type, COMMENT1.memes[0].type);
 
-                        assert.equal(comment.children_counter, 1);
+                        assert.equal(comment.children_counter, 0);
                         callback();
                     }
                 );
