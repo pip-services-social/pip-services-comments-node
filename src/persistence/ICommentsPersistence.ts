@@ -36,4 +36,7 @@ export interface ICommentsPersistence extends IGetter<CommentV1, string>, IWrite
 
     updateState(correlationId: string, id: string, state: String,
         callback: (err: any, review: CommentV1) => void): void;
+
+    markAsDeleted(correlationId: string, id: string,
+        callback: (err: any, review: CommentV1) => void): void;
 }

@@ -100,6 +100,9 @@ class CommentsController {
     updateCommentState(correlationId, id, state, callback) {
         this._persistence.updateState(correlationId, id, state, callback);
     }
+    markCommentAsDeleted(correlationId, id, callback) {
+        this._persistence.markAsDeleted(correlationId, id, callback);
+    }
 }
 exports.CommentsController = CommentsController;
 CommentsController._defaultConfig = pip_services3_commons_node_1.ConfigParams.fromTuples('dependencies.persistence', 'pip-services-comments:persistence:*:*:1.0');

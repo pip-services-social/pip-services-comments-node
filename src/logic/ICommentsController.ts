@@ -28,4 +28,7 @@ export interface ICommentsController {
 
     updateCommentState(correlationId: string, id: string, state: String,
         callback: (err: any, review: CommentV1) => void): void;
+
+    markCommentAsDeleted(correlationId: string, id: string,
+        callback: (err: any, review: CommentV1) => void): void;
 }

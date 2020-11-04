@@ -10,7 +10,6 @@ import { TypeCode } from 'pip-services3-commons-node';
 import { FilterParamsSchema } from 'pip-services3-commons-node';
 import { PagingParamsSchema } from 'pip-services3-commons-node';
 
-import { CommentV1 } from '../data/version1/CommentV1';
 import { CommentV1Schema } from '../data/version1/CommentV1Schema';
 import { ICommentsController } from './ICommentsController';
 
@@ -31,6 +30,7 @@ export class CommentsCommandSet extends CommandSet {
 		this.addCommand(this.makeUpdateStateCommentCommand());
 		this.addCommand(this.makeAddCommentMemeCommand());
 		this.addCommand(this.makeRemoveCommentMemeCommand());
+		this.addCommand(this.makeMarkCommentAsDeletedCommand())
 	}
 
 	private makeGetCommentsCommand(): ICommand {
@@ -137,6 +137,18 @@ export class CommentsCommandSet extends CommandSet {
 				let creatorId = args.get("creator_id");
 				let memeType = args.get("meme_type");
 				this._logic.removeMemeFromComment(correlationId, id, creatorId, memeType, callback);
+			}
+		);
+	}
+
+	private makeMarkCommentAsDeletedCommand(): ICommand {
+		return new Command(
+			"mark_comment_deleted",
+			new ObjectSchema(true)
+				.withRequiredProperty('id', TypeCode.String),
+			(correlationId: string, args: Parameters, callback: (err: any, result: any) => void) => {
+				let id = args.get("id");
+				this._logic.markCommentAsDeleted(correlationId, id, callback);
 			}
 		);
 	}

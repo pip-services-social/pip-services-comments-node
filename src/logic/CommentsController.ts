@@ -122,10 +122,16 @@ export class CommentsController implements IConfigurable, IReferenceable, IComma
     addMemeToComment(correlationId: string, id: string, creator_id: string, meme_type: string, callback: (err: any, review: CommentV1) => void): void {
         this._persistence.addMeme(correlationId, id, creator_id, meme_type, callback);
     }
+
     removeMemeFromComment(correlationId: string, id: string, creator_id: string, meme_type: string, callback: (err: any, review: CommentV1) => void): void {
         this._persistence.removeMeme(correlationId, id, creator_id, meme_type, callback);
     }
+
     updateCommentState(correlationId: string, id: string, state: String, callback: (err: any, review: CommentV1) => void): void {
         this._persistence.updateState(correlationId, id, state, callback);
+    }
+
+    markCommentAsDeleted(correlationId: string, id: string, callback: (err: any, review: CommentV1) => void): void {
+        this._persistence.markAsDeleted(correlationId, id, callback);
     }
 }

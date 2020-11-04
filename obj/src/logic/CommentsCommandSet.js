@@ -23,6 +23,7 @@ class CommentsCommandSet extends pip_services3_commons_node_1.CommandSet {
         this.addCommand(this.makeUpdateStateCommentCommand());
         this.addCommand(this.makeAddCommentMemeCommand());
         this.addCommand(this.makeRemoveCommentMemeCommand());
+        this.addCommand(this.makeMarkCommentAsDeletedCommand());
     }
     makeGetCommentsCommand() {
         return new pip_services3_commons_node_2.Command("get_comments", new pip_services3_commons_node_5.ObjectSchema(true)
@@ -90,6 +91,13 @@ class CommentsCommandSet extends pip_services3_commons_node_1.CommandSet {
             let creatorId = args.get("creator_id");
             let memeType = args.get("meme_type");
             this._logic.removeMemeFromComment(correlationId, id, creatorId, memeType, callback);
+        });
+    }
+    makeMarkCommentAsDeletedCommand() {
+        return new pip_services3_commons_node_2.Command("mark_comment_deleted", new pip_services3_commons_node_5.ObjectSchema(true)
+            .withRequiredProperty('id', pip_services3_commons_node_6.TypeCode.String), (correlationId, args, callback) => {
+            let id = args.get("id");
+            this._logic.markCommentAsDeleted(correlationId, id, callback);
         });
     }
 }

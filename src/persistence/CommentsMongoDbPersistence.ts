@@ -267,4 +267,33 @@ export class CommentsMongoDbPersistence
         });
 
     }
+
+    markAsDeleted(correlationId: string, id: string,
+        callback: (err: any, review: CommentV1) => void): void {
+            let criteria = {
+                _id: id
+            };
+    
+            let update = {
+                $set: {
+                    deleted: true,
+                }
+            };
+    
+            let options = {
+                returnOriginal: false
+            };
+    
+            this._collection.findOneAndUpdate(criteria, update, options, (err, result) => {
+                let item = result ? this.convertToPublic(result.value) : null;
+    
+                if (err == null) {
+                    if (item)
+                        this._logger.trace(correlationId, "Updated state in %s with id = %s", this._collection, item.id);
+                    else
+                        this._logger.trace(correlationId, "Comment %s was not found", id);
+                }
+                callback(err, item);
+            });
+        }
 }

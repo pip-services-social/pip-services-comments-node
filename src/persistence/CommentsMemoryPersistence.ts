@@ -225,4 +225,20 @@ export class CommentsMemoryPersistence
             callback(err, item)
         });
     }
+
+    markAsDeleted(correlationId: string, id: string,
+        callback: (err: any, review: CommentV1) => void): void {
+        let item = _.find(this._items, item => item.id == id);
+
+        if (item == null) {
+            this._logger.trace(correlationId, "Item %s was not found", id);
+            callback(null, null);
+            return;
+        }
+        item.deleted = true;
+        this._logger.trace(correlationId, "Item %s mark as deleted", item.id);
+        this.save(correlationId, (err) => {
+            callback(err, item)
+        });
+    }
 }

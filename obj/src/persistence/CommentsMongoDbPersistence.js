@@ -213,6 +213,29 @@ class CommentsMongoDbPersistence extends pip_services3_mongodb_node_1.Identifiab
             callback(err, item);
         });
     }
+    markAsDeleted(correlationId, id, callback) {
+        let criteria = {
+            _id: id
+        };
+        let update = {
+            $set: {
+                deleted: true,
+            }
+        };
+        let options = {
+            returnOriginal: false
+        };
+        this._collection.findOneAndUpdate(criteria, update, options, (err, result) => {
+            let item = result ? this.convertToPublic(result.value) : null;
+            if (err == null) {
+                if (item)
+                    this._logger.trace(correlationId, "Updated state in %s with id = %s", this._collection, item.id);
+                else
+                    this._logger.trace(correlationId, "Comment %s was not found", id);
+            }
+            callback(err, item);
+        });
+    }
 }
 exports.CommentsMongoDbPersistence = CommentsMongoDbPersistence;
 //# sourceMappingURL=CommentsMongoDbPersistence.js.map

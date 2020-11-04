@@ -373,6 +373,27 @@ suite('CommentsHttpServiceV1', ()=> {
                     }
                 );
             },
+
+            // Mark as deleted comment
+            (callback) => {
+
+                rest.post('/v1/comments/mark_comment_deleted',
+                    { 
+                        id: comment3.id
+                    },
+                    (err, req, res, comment) => {
+                        assert.isNull(err);
+
+                        assert.isObject(comment);
+                        assert.equal(comment.deleted, true);
+                        assert.equal(comment.id, COMMENT3.id);
+
+                        comment3 = comment;
+
+                        callback();
+                    }
+                );
+            },
         // Delete comment
             (callback) => {
                 rest.post('/v1/comments/delete_comment_by_id',

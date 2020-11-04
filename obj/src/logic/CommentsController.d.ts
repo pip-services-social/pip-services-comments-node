@@ -25,4 +25,5 @@ export declare class CommentsController implements IConfigurable, IReferenceable
     addMemeToComment(correlationId: string, id: string, creator_id: string, meme_type: string, callback: (err: any, review: CommentV1) => void): void;
     removeMemeFromComment(correlationId: string, id: string, creator_id: string, meme_type: string, callback: (err: any, review: CommentV1) => void): void;
     updateCommentState(correlationId: string, id: string, state: String, callback: (err: any, review: CommentV1) => void): void;
+    markCommentAsDeleted(correlationId: string, id: string, callback: (err: any, review: CommentV1) => void): void;
 }

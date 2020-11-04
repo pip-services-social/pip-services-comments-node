@@ -11,4 +11,5 @@ export declare class CommentsCommandSet extends CommandSet {
     private makeUpdateStateCommentCommand;
     private makeAddCommentMemeCommand;
     private makeRemoveCommentMemeCommand;
+    private makeMarkCommentAsDeletedCommand;
 }

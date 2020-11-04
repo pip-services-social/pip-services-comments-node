@@ -193,6 +193,19 @@ class CommentsMemoryPersistence extends pip_services3_data_node_1.IdentifiableMe
             callback(err, item);
         });
     }
+    markAsDeleted(correlationId, id, callback) {
+        let item = _.find(this._items, item => item.id == id);
+        if (item == null) {
+            this._logger.trace(correlationId, "Item %s was not found", id);
+            callback(null, null);
+            return;
+        }
+        item.deleted = true;
+        this._logger.trace(correlationId, "Item %s mark as deleted", item.id);
+        this.save(correlationId, (err) => {
+            callback(err, item);
+        });
+    }
 }
 exports.CommentsMemoryPersistence = CommentsMemoryPersistence;
 //# sourceMappingURL=CommentsMemoryPersistence.js.map

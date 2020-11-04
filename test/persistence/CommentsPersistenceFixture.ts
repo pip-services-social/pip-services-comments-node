@@ -278,6 +278,24 @@ export class CommentsPersistenceFixture {
             //     );
             // },
 
+            // Mark comment as deleted
+            (callback) => {
+
+                this._persistence.markAsDeleted(
+                    null,
+                    comment1.id,
+                    (err, comment) => {
+                        assert.isNull(err);
+
+                        assert.isObject(comment);
+                        assert.equal(comment.deleted, true);
+                        assert.equal(comment.id, comment1.id);
+
+                        callback();
+                    }
+                );
+            },
+
         // Delete comment
             (callback) => {
                 this._persistence.deleteById(
