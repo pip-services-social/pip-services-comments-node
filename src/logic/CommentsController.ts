@@ -1,6 +1,6 @@
 
 let async = require('async');
-import { ConfigParams, DateTimeConverter } from 'pip-services3-commons-node';
+import { ConfigParams, DateTimeConverter, InternalException, NotFoundException } from 'pip-services3-commons-node';
 import { IConfigurable } from 'pip-services3-commons-node';
 import { IReferences } from 'pip-services3-commons-node';
 import { IReferenceable } from 'pip-services3-commons-node';
@@ -15,6 +15,7 @@ import { CommentV1 } from '../data/version1/CommentV1';
 import { ICommentsPersistence } from '../persistence/ICommentsPersistence';
 import { ICommentsController } from './ICommentsController';
 import { CommentsCommandSet } from './CommentsCommandSet';
+import { MemeV1 } from '..';
 
 export class CommentsController implements IConfigurable, IReferenceable, ICommandable, ICommentsController {
     private static _defaultConfig: ConfigParams = ConfigParams.fromTuples(
@@ -120,11 +121,135 @@ export class CommentsController implements IConfigurable, IReferenceable, IComma
     }
 
     addMemeToComment(correlationId: string, id: string, creator_id: string, meme_type: string, callback: (err: any, review: CommentV1) => void): void {
-        this._persistence.addMeme(correlationId, id, creator_id, meme_type, callback);
+        //this._persistence.addMeme(correlationId, id, creator_id, meme_type, callback);
+
+        let result: CommentV1;
+        async.series([
+            (callback) => {
+                this.getCommentById(correlationId, id, (err, item) => {
+                    if (err != null || item == null) {
+                        err = new NotFoundException(
+                            correlationId,
+                            'NOT_FOUND',
+                            'Not found comment with id ' + id
+                        ).withDetails('comment_id', id);
+                        callback(err);
+                        return;
+                    }
+                    result = item;
+                    callback();
+                })
+            },
+            (callback) => {
+                if (!result.memes) {
+                    result.memes = new Array<MemeV1>();
+                }
+                let memes = result.memes.filter((item) => { return item.type == meme_type })
+                if (memes.length > 0) {
+                    if (memes[0].creator_ids && !memes[0].creator_ids.includes(creator_id)) {
+                        memes[0].count += 1;
+                        memes[0].creator_ids.push(creator_id)
+                    } else {
+                        let err = new InternalException(
+                            correlationId,
+                            'ALREADY_EXIST',
+                            'User is already add meme this type').withDetails("user_id", creator_id)
+                            .withDetails("meme_type", meme_type)
+                            .withDetails("meme_id", result.id)
+                        callback(err);
+                        return
+                    }
+                } else {
+                    let meme: MemeV1 = {
+                        type: meme_type,
+                        count: 1,
+                        creator_ids: [creator_id]
+                    }
+                    result.memes.push(meme)
+                }
+                callback();
+            },
+            (callback) => {
+                this.updateComment(correlationId, result, (err, item) => {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+                    result = item;
+                    callback();
+                })
+            }
+        ],
+            (err) => {
+                callback(err, result);
+            })
     }
 
     removeMemeFromComment(correlationId: string, id: string, creator_id: string, meme_type: string, callback: (err: any, review: CommentV1) => void): void {
-        this._persistence.removeMeme(correlationId, id, creator_id, meme_type, callback);
+        //this._persistence.removeMeme(correlationId, id, creator_id, meme_type, callback);
+        let result: CommentV1;
+        async.series([
+            (callback) => {
+                this.getCommentById(correlationId, id, (err, item) => {
+                    if (err != null || item == null) {
+                        err = new NotFoundException(
+                            correlationId,
+                            'NOT_FOUND',
+                            'Not found comment with id ' + id
+                        ).withDetails('comment_id', id);
+                        callback(err);
+                        return;
+                    }
+                    result = item;
+                    callback();
+                })
+            },
+            (callback) => {
+                if (!result.memes) {
+                    result.memes = new Array<MemeV1>();
+                }
+                let memes = result.memes.filter((item) => { return item.type == meme_type })
+                if (memes.length > 0) {
+                    if (memes[0].creator_ids && memes[0].creator_ids.includes(creator_id)) {
+                        memes[0].count -= 1;
+                        let index = memes[0].creator_ids.indexOf(creator_id);
+                        memes[0].creator_ids.splice(index, 1);
+                    } else {
+                        let err = new NotFoundException(
+                            correlationId,
+                            'NOT_FOUND',
+                            'Meme with this type not found for this user').withDetails("user_id", creator_id)
+                            .withDetails("meme_type", meme_type)
+                            .withDetails("meme_id", result.id)
+                        callback(err);
+                        return
+                    }
+                } else {
+                    let err = new NotFoundException(
+                        correlationId,
+                        'NOT_FOUND',
+                        'Meme with this type not found for this user').withDetails("user_id", creator_id)
+                        .withDetails("meme_type", meme_type)
+                        .withDetails("meme_id", result.id)
+                    callback(err);
+                    return
+                }
+                callback();
+            },
+            (callback) => {
+                this.updateComment(correlationId, result, (err, item) => {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+                    result = item;
+                    callback();
+                })
+            }
+        ],
+            (err) => {
+                callback(err, result);
+            })
     }
 
     updateCommentState(correlationId: string, id: string, state: String, callback: (err: any, review: CommentV1) => void): void {

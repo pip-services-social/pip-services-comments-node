@@ -92,10 +92,118 @@ class CommentsController {
         });
     }
     addMemeToComment(correlationId, id, creator_id, meme_type, callback) {
-        this._persistence.addMeme(correlationId, id, creator_id, meme_type, callback);
+        //this._persistence.addMeme(correlationId, id, creator_id, meme_type, callback);
+        let result;
+        async.series([
+            (callback) => {
+                this.getCommentById(correlationId, id, (err, item) => {
+                    if (err != null || item == null) {
+                        err = new pip_services3_commons_node_1.NotFoundException(correlationId, 'NOT_FOUND', 'Not found comment with id ' + id).withDetails('comment_id', id);
+                        callback(err);
+                        return;
+                    }
+                    result = item;
+                    callback();
+                });
+            },
+            (callback) => {
+                if (!result.memes) {
+                    result.memes = new Array();
+                }
+                let memes = result.memes.filter((item) => { return item.type == meme_type; });
+                if (memes.length > 0) {
+                    if (memes[0].creator_ids && !memes[0].creator_ids.includes(creator_id)) {
+                        memes[0].count += 1;
+                        memes[0].creator_ids.push(creator_id);
+                    }
+                    else {
+                        let err = new pip_services3_commons_node_1.InternalException(correlationId, 'ALREADY_EXIST', 'User is already add meme this type').withDetails("user_id", creator_id)
+                            .withDetails("meme_type", meme_type)
+                            .withDetails("meme_id", result.id);
+                        callback(err);
+                        return;
+                    }
+                }
+                else {
+                    let meme = {
+                        type: meme_type,
+                        count: 1,
+                        creator_ids: [creator_id]
+                    };
+                    result.memes.push(meme);
+                }
+                callback();
+            },
+            (callback) => {
+                this.updateComment(correlationId, result, (err, item) => {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+                    result = item;
+                    callback();
+                });
+            }
+        ], (err) => {
+            callback(err, result);
+        });
     }
     removeMemeFromComment(correlationId, id, creator_id, meme_type, callback) {
-        this._persistence.removeMeme(correlationId, id, creator_id, meme_type, callback);
+        //this._persistence.removeMeme(correlationId, id, creator_id, meme_type, callback);
+        let result;
+        async.series([
+            (callback) => {
+                this.getCommentById(correlationId, id, (err, item) => {
+                    if (err != null || item == null) {
+                        err = new pip_services3_commons_node_1.NotFoundException(correlationId, 'NOT_FOUND', 'Not found comment with id ' + id).withDetails('comment_id', id);
+                        callback(err);
+                        return;
+                    }
+                    result = item;
+                    callback();
+                });
+            },
+            (callback) => {
+                if (!result.memes) {
+                    result.memes = new Array();
+                }
+                let memes = result.memes.filter((item) => { return item.type == meme_type; });
+                if (memes.length > 0) {
+                    if (memes[0].creator_ids && memes[0].creator_ids.includes(creator_id)) {
+                        memes[0].count -= 1;
+                        let index = memes[0].creator_ids.indexOf(creator_id);
+                        memes[0].creator_ids.splice(index, 1);
+                    }
+                    else {
+                        let err = new pip_services3_commons_node_1.NotFoundException(correlationId, 'NOT_FOUND', 'Meme with this type not found for this user').withDetails("user_id", creator_id)
+                            .withDetails("meme_type", meme_type)
+                            .withDetails("meme_id", result.id);
+                        callback(err);
+                        return;
+                    }
+                }
+                else {
+                    let err = new pip_services3_commons_node_1.NotFoundException(correlationId, 'NOT_FOUND', 'Meme with this type not found for this user').withDetails("user_id", creator_id)
+                        .withDetails("meme_type", meme_type)
+                        .withDetails("meme_id", result.id);
+                    callback(err);
+                    return;
+                }
+                callback();
+            },
+            (callback) => {
+                this.updateComment(correlationId, result, (err, item) => {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+                    result = item;
+                    callback();
+                });
+            }
+        ], (err) => {
+            callback(err, result);
+        });
     }
     updateCommentState(correlationId, id, state, callback) {
         this._persistence.updateState(correlationId, id, state, callback);
